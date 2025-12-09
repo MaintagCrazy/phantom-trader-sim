@@ -1,6 +1,23 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { Prisma } from '@prisma/client';
 import prisma from '../lib/prisma.js';
 import { ValidationError } from '../middleware/errorHandler.js';
+
+interface TransactionRecord {
+  id: string;
+  userId: string;
+  type: string;
+  fromCoinId: string | null;
+  fromSymbol: string | null;
+  fromAmount: Prisma.Decimal | null;
+  toCoinId: string | null;
+  toSymbol: string | null;
+  toAmount: Prisma.Decimal | null;
+  depositAmount: Prisma.Decimal | null;
+  priceAtTime: Prisma.Decimal | null;
+  totalUsdValue: Prisma.Decimal;
+  createdAt: Date;
+}
 
 export const transactionsRouter = Router();
 
@@ -32,7 +49,7 @@ transactionsRouter.get('/', async (req: Request, res: Response, next: NextFuncti
     ]);
 
     res.json({
-      transactions: transactions.map(tx => ({
+      transactions: transactions.map((tx: TransactionRecord) => ({
         id: tx.id,
         type: tx.type,
         fromCoinId: tx.fromCoinId,

@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { cacheGet, cacheSet } from '../lib/redis.js';
 import prisma from '../lib/prisma.js';
 
@@ -11,6 +12,17 @@ const CACHE_TTL = {
   CHART: 300,      // 5 minutes
   MARKETS: 60,     // 1 minute
 };
+
+interface PriceCacheRecord {
+  id: string;
+  coinId: string;
+  symbol: string;
+  name: string;
+  price: Prisma.Decimal;
+  change24h: Prisma.Decimal | null;
+  image: string | null;
+  updatedAt: Date;
+}
 
 interface CoinMarketData {
   id: string;
@@ -123,7 +135,7 @@ export async function getMarketsData(
     });
 
     if (dbCache.length > 0) {
-      return dbCache.map(c => ({
+      return dbCache.map((c: PriceCacheRecord) => ({
         id: c.coinId,
         symbol: c.symbol.toLowerCase(),
         name: c.name,

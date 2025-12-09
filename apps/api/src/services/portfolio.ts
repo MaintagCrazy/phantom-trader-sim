@@ -1,7 +1,21 @@
+import { Prisma } from '@prisma/client';
 import prisma from '../lib/prisma.js';
 import { getSimplePrices } from './coingecko.js';
 import { InsufficientBalanceError, NotFoundError, ValidationError } from '../middleware/errorHandler.js';
-import { Decimal } from '@prisma/client/runtime/library';
+
+type TransactionClient = Prisma.TransactionClient;
+
+interface HoldingRecord {
+  id: string;
+  portfolioId: string;
+  coinId: string;
+  symbol: string;
+  name: string;
+  amount: Prisma.Decimal;
+  avgBuyPrice: Prisma.Decimal;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 interface PortfolioWithValue {
   id: string;
@@ -39,13 +53,13 @@ export async function getPortfolioWithValues(userId: string): Promise<PortfolioW
   if (!portfolio) return null;
 
   // Get current prices for all holdings
-  const coinIds = portfolio.holdings.map(h => h.coinId);
+  const coinIds = portfolio.holdings.map((h: HoldingRecord) => h.coinId);
   const prices = coinIds.length > 0 ? await getSimplePrices(coinIds) : {};
 
   let totalHoldingsValue = 0;
   let totalCostBasis = 0;
 
-  const holdingsWithValue: HoldingWithValue[] = portfolio.holdings.map(holding => {
+  const holdingsWithValue: HoldingWithValue[] = portfolio.holdings.map((holding: HoldingRecord) => {
     const priceData = prices[holding.coinId];
     const currentPrice = priceData?.usd || 0;
     const amount = Number(holding.amount);
@@ -97,7 +111,7 @@ export async function deposit(userId: string, amount: number): Promise<void> {
     throw new ValidationError('Deposit amount must be positive');
   }
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: TransactionClient) => {
     // Get or create portfolio
     let portfolio = await tx.portfolio.findUnique({ where: { userId } });
 
@@ -142,7 +156,7 @@ export async function buyCrypto(
 
   const cryptoAmount = usdAmount / currentPrice;
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: TransactionClient) => {
     const portfolio = await tx.portfolio.findUnique({
       where: { userId },
       include: { holdings: true },
@@ -166,7 +180,7 @@ export async function buyCrypto(
     });
 
     // Update or create holding
-    const existingHolding = portfolio.holdings.find(h => h.coinId === coinId);
+    const existingHolding = portfolio.holdings.find((h: HoldingRecord) => h.coinId === coinId);
 
     if (existingHolding) {
       // Calculate new average buy price
@@ -224,7 +238,7 @@ export async function sellCrypto(
 
   const usdAmount = cryptoAmount * currentPrice;
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: TransactionClient) => {
     const portfolio = await tx.portfolio.findUnique({
       where: { userId },
       include: { holdings: true },
@@ -234,7 +248,7 @@ export async function sellCrypto(
       throw new NotFoundError('Portfolio not found');
     }
 
-    const holding = portfolio.holdings.find(h => h.coinId === coinId);
+    const holding = portfolio.holdings.find((h: HoldingRecord) => h.coinId === coinId);
     if (!holding) {
       throw new NotFoundError(`You don't own any ${coinId}`);
     }
@@ -298,7 +312,7 @@ export async function swapCrypto(
   const usdValue = fromAmount * fromPrice;
   const toAmount = usdValue / toPrice;
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: TransactionClient) => {
     const portfolio = await tx.portfolio.findUnique({
       where: { userId },
       include: { holdings: true },
@@ -308,7 +322,7 @@ export async function swapCrypto(
       throw new NotFoundError('Portfolio not found');
     }
 
-    const fromHolding = portfolio.holdings.find(h => h.coinId === fromCoinId);
+    const fromHolding = portfolio.holdings.find((h: HoldingRecord) => h.coinId === fromCoinId);
     if (!fromHolding) {
       throw new NotFoundError(`You don't own any ${fromCoinId}`);
     }
@@ -332,7 +346,7 @@ export async function swapCrypto(
     }
 
     // Increase to holding
-    const toHolding = portfolio.holdings.find(h => h.coinId === toCoinId);
+    const toHolding = portfolio.holdings.find((h: HoldingRecord) => h.coinId === toCoinId);
     if (toHolding) {
       const oldAmount = Number(toHolding.amount);
       const oldAvgPrice = Number(toHolding.avgBuyPrice);
