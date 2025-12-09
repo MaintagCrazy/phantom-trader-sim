@@ -3,7 +3,7 @@ import prisma from '../lib/prisma.js';
 import { z } from 'zod';
 import { ValidationError } from '../middleware/errorHandler.js';
 
-export const userRouter = Router();
+export const userRouter: Router = Router();
 
 const createUserSchema = z.object({
   username: z.string().min(3).max(30).optional(),

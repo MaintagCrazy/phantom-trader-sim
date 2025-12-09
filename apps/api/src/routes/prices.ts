@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { getSimplePrices, getMarketsData } from '../services/coingecko.js';
 import { cacheGet, cacheSet } from '../lib/redis.js';
 
-export const pricesRouter = Router();
+export const pricesRouter: Router = Router();
 
 // GET /api/prices?ids=bitcoin,ethereum,solana
 pricesRouter.get('/', async (req: Request, res: Response, next: NextFunction) => {

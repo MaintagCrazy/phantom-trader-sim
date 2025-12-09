@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -14,7 +14,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
 
-const app = express();
+const app: Express = express();
 const PORT = process.env.PORT || 3001;
 
 // === SECURITY MIDDLEWARE ===
@@ -48,7 +48,7 @@ app.use('/api', limiter);
 // === ROUTES ===
 
 // Health check (no rate limit)
-app.get('/health', (req, res) => {
+app.get('/health', (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -69,7 +69,7 @@ app.use('/api/transactions', transactionsRouter);
 app.use(errorHandler);
 
 // 404 handler
-app.use((req, res) => {
+app.use((_req: Request, res: Response) => {
   res.status(404).json({ error: 'Not found' });
 });
 

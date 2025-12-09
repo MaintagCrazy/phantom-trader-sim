@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { getPortfolioWithValues } from '../services/portfolio.js';
 import { NotFoundError, ValidationError } from '../middleware/errorHandler.js';
 
-export const portfolioRouter = Router();
+export const portfolioRouter: Router = Router();
 
 // GET /api/portfolio?userId=xxx - Get user portfolio with current values
 portfolioRouter.get('/', async (req: Request, res: Response, next: NextFunction) => {

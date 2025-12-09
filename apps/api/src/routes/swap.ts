@@ -4,7 +4,7 @@ import { deposit, buyCrypto, sellCrypto, swapCrypto } from '../services/portfoli
 import { getSimplePrices } from '../services/coingecko.js';
 import { ValidationError } from '../middleware/errorHandler.js';
 
-export const swapRouter = Router();
+export const swapRouter: Router = Router();
 
 // POST /api/deposit - Add fake funds
 const depositSchema = z.object({

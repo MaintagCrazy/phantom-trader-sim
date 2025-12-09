@@ -19,7 +19,7 @@ interface TransactionRecord {
   createdAt: Date;
 }
 
-export const transactionsRouter = Router();
+export const transactionsRouter: Router = Router();
 
 // GET /api/transactions?userId=xxx - Get user transaction history
 transactionsRouter.get('/', async (req: Request, res: Response, next: NextFunction) => {

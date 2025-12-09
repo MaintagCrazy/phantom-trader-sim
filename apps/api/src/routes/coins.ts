@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { getMarketsData, getChartData, searchCoins } from '../services/coingecko.js';
 
-export const coinsRouter = Router();
+export const coinsRouter: Router = Router();
 
 // GET /api/coins - Get coin list with market data
 coinsRouter.get('/', async (req: Request, res: Response, next: NextFunction) => {
