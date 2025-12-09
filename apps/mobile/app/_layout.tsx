@@ -5,6 +5,8 @@ import { View } from 'react-native';
 import { useUserStore } from '@/store/userStore';
 import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore } from '@/store/coinsStore';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { Toast } from '@/components/Toast';
 import '../global.css';
 
 export default function RootLayout() {
@@ -45,31 +47,34 @@ export default function RootLayout() {
   }, [userId]);
 
   return (
-    <View className="flex-1 bg-dark-bg">
-      <StatusBar style="light" />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: '#131314' },
-          animation: 'slide_from_right',
-        }}
-      >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="token/[id]"
-          options={{
-            presentation: 'card',
-            animation: 'slide_from_bottom',
+    <ErrorBoundary>
+      <View className="flex-1 bg-dark-bg">
+        <StatusBar style="light" />
+        <Toast />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: '#131314' },
+            animation: 'slide_from_right',
           }}
-        />
-        <Stack.Screen
-          name="deposit"
-          options={{
-            presentation: 'modal',
-            animation: 'slide_from_bottom',
-          }}
-        />
-      </Stack>
-    </View>
+        >
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="token/[id]"
+            options={{
+              presentation: 'card',
+              animation: 'slide_from_bottom',
+            }}
+          />
+          <Stack.Screen
+            name="deposit"
+            options={{
+              presentation: 'modal',
+              animation: 'slide_from_bottom',
+            }}
+          />
+        </Stack>
+      </View>
+    </ErrorBoundary>
   );
 }
