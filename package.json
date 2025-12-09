@@ -1,0 +1,21 @@
+{
+  "name": "phantom-trader-sim",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Trade Demo - A Phantom-style crypto paper trading simulator",
+  "scripts": {
+    "dev": "pnpm --filter api dev",
+    "dev:mobile": "pnpm --filter mobile start",
+    "build": "pnpm --filter api build",
+    "db:push": "pnpm --filter api db:push",
+    "db:migrate": "pnpm --filter api db:migrate",
+    "db:studio": "pnpm --filter api db:studio"
+  },
+  "keywords": ["crypto", "trading", "simulator", "paper-trading", "react-native", "expo"],
+  "author": "Trade Demo",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

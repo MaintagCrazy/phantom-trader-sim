@@ -1,0 +1,157 @@
+import axios from 'axios';
+import API_BASE_URL from '@/constants/api';
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Types
+export interface Coin {
+  id: string;
+  symbol: string;
+  name: string;
+  image: string;
+  currentPrice: number;
+  marketCap: number;
+  marketCapRank: number;
+  priceChange24h: number;
+  totalVolume: number;
+  circulatingSupply: number;
+  ath: number;
+  sparkline?: number[];
+}
+
+export interface Holding {
+  id: string;
+  coinId: string;
+  symbol: string;
+  name: string;
+  amount: number;
+  avgBuyPrice: number;
+  currentPrice: number;
+  currentValue: number;
+  pnl: number;
+  pnlPercent: number;
+  image?: string;
+}
+
+export interface Portfolio {
+  id: string;
+  userId: string;
+  cashBalance: number;
+  totalValue: number;
+  totalPnL: number;
+  totalPnLPercent: number;
+  holdings: Holding[];
+}
+
+export interface Transaction {
+  id: string;
+  type: 'DEPOSIT' | 'SWAP' | 'BUY' | 'SELL';
+  fromCoinId?: string;
+  fromSymbol?: string;
+  fromAmount?: number;
+  toCoinId?: string;
+  toSymbol?: string;
+  toAmount?: number;
+  depositAmount?: number;
+  priceAtTime?: number;
+  totalUsdValue: number;
+  createdAt: string;
+}
+
+export interface User {
+  id: string;
+  username: string | null;
+  createdAt: string;
+  hasPortfolio: boolean;
+}
+
+// User endpoints
+export async function createUser(username?: string): Promise<User> {
+  const { data } = await api.post('/api/user', { username });
+  return data;
+}
+
+export async function getUser(id: string): Promise<User> {
+  const { data } = await api.get(`/api/user/${id}`);
+  return data;
+}
+
+// Portfolio endpoints
+export async function getPortfolio(userId: string): Promise<Portfolio> {
+  const { data } = await api.get('/api/portfolio', { params: { userId } });
+  return data;
+}
+
+// Deposit
+export async function deposit(userId: string, amount: number): Promise<{ success: boolean; message: string }> {
+  const { data } = await api.post('/api/deposit', { userId, amount });
+  return data;
+}
+
+// Swap/Trade endpoints
+export async function executeSwap(params: {
+  userId: string;
+  type: 'buy' | 'sell' | 'swap';
+  fromCoinId?: string;
+  fromAmount?: number;
+  toCoinId?: string;
+  toSymbol?: string;
+  toName?: string;
+  usdAmount?: number;
+  cryptoAmount?: number;
+}) {
+  const { data } = await api.post('/api/swap/execute', params);
+  return data;
+}
+
+export async function previewSwap(params: {
+  fromCoinId?: string;
+  toCoinId?: string;
+  fromAmount?: number;
+  usdAmount?: number;
+}) {
+  const { data } = await api.post('/api/swap/preview', params);
+  return data;
+}
+
+// Coin endpoints
+export async function getCoins(page = 1, perPage = 20, search?: string): Promise<{ coins: Coin[]; page: number; perPage: number }> {
+  const { data } = await api.get('/api/coins', { params: { page, perPage, search } });
+  return data;
+}
+
+export async function getCoin(id: string): Promise<Coin> {
+  const { data } = await api.get(`/api/coins/${id}`);
+  return data;
+}
+
+export async function getCoinChart(id: string, days: string = '7'): Promise<{ coinId: string; days: string; prices: [number, number][] }> {
+  const { data } = await api.get(`/api/coins/${id}/chart`, { params: { days } });
+  return data;
+}
+
+// Prices endpoint
+export async function getPrices(ids?: string[]): Promise<Record<string, { usd: number; usd_24h_change?: number }>> {
+  const { data } = await api.get('/api/prices', { params: { ids: ids?.join(',') } });
+  return data;
+}
+
+// Transactions endpoint
+export async function getTransactions(userId: string, page = 1, perPage = 20): Promise<{
+  transactions: Transaction[];
+  page: number;
+  perPage: number;
+  total: number;
+  totalPages: number;
+}> {
+  const { data } = await api.get('/api/transactions', { params: { userId, page, perPage } });
+  return data;
+}
+
+export default api;

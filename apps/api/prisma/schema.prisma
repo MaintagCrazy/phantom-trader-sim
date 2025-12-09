@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  username     String?       @unique
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  portfolio    Portfolio?
+  transactions Transaction[]
+}
+
+model Portfolio {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cashBalance Decimal   @default(0) @db.Decimal(18, 2)
+  holdings    Holding[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Holding {
+  id          String    @id @default(cuid())
+  portfolioId String
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  coinId      String    // CoinGecko coin ID (e.g., "bitcoin")
+  symbol      String    // e.g., "BTC"
+  name        String    // e.g., "Bitcoin"
+  amount      Decimal   @db.Decimal(18, 8)
+  avgBuyPrice Decimal   @db.Decimal(18, 8)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([portfolioId, coinId])
+  @@index([portfolioId])
+}
+
+model Transaction {
+  id            String          @id @default(cuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          TransactionType
+  // For swaps/trades
+  fromCoinId    String?
+  fromSymbol    String?
+  fromAmount    Decimal?        @db.Decimal(18, 8)
+  toCoinId      String?
+  toSymbol      String?
+  toAmount      Decimal?        @db.Decimal(18, 8)
+  // For deposits
+  depositAmount Decimal?        @db.Decimal(18, 2)
+  // Price info
+  priceAtTime   Decimal?        @db.Decimal(18, 8)
+  totalUsdValue Decimal         @db.Decimal(18, 2)
+  createdAt     DateTime        @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum TransactionType {
+  DEPOSIT
+  SWAP
+  BUY
+  SELL
+}
+
+// Cache for prices (fallback if Redis fails)
+model PriceCache {
+  id        String   @id @default(cuid())
+  coinId    String   @unique
+  symbol    String
+  name      String
+  price     Decimal  @db.Decimal(18, 8)
+  change24h Decimal? @db.Decimal(10, 4)
+  image     String?
+  updatedAt DateTime @updatedAt
+}
