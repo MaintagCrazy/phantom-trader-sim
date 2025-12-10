@@ -7,7 +7,6 @@ import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore } from '@/store/coinsStore';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Toast } from '@/components/Toast';
-import '../global.css';
 
 export default function RootLayout() {
   const { userId, initUser, loadUser } = useUserStore();
