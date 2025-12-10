@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["nodejs_20", "openssl_1_1"]
+nixPkgs = ["nodejs_20", "openssl"]
 
 [phases.install]
 cmds = ["npm install"]
@@ -14,4 +14,4 @@ cmds = [
 cmd = "node dist/index.js"
 
 [variables]
-PRISMA_QUERY_ENGINE_LIBRARY = "/app/node_modules/.prisma/client/libquery_engine-debian-openssl-1.1.x.so.node"
+PRISMA_QUERY_ENGINE_LIBRARY = "/app/node_modules/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node"
