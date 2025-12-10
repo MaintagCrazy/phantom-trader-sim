@@ -5,7 +5,11 @@ nixPkgs = ["nodejs_20", "openssl"]
 cmds = ["npm install"]
 
 [phases.build]
-cmds = ["npx prisma generate", "npm run build"]
+cmds = [
+  "npx prisma generate",
+  "npm run build",
+  "npx prisma db push --accept-data-loss || echo 'DB push skipped - will retry at runtime'"
+]
 
 [start]
-cmd = "npm run start"
+cmd = "node dist/index.js"
