@@ -19,8 +19,9 @@ RUN npm ci --legacy-peer-deps || npm install
 # Copy source files
 COPY . .
 
-# Build the web export
-RUN npx expo export -p web
+# Build the web export (production mode)
+ENV NODE_ENV=production
+RUN npx expo export -p web --no-dev --no-minify
 
 # Production stage - serve static files
 FROM node:20-slim
