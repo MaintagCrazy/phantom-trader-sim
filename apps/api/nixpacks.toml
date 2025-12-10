@@ -1,6 +1,5 @@
 [phases.setup]
 nixPkgs = ["nodejs_20", "openssl"]
-aptPkgs = ["openssl", "libssl-dev"]
 
 [phases.install]
 cmds = ["npm install"]
@@ -9,7 +8,4 @@ cmds = ["npm install"]
 cmds = ["npx prisma generate", "npm run build"]
 
 [start]
-cmd = "npx prisma db push --accept-data-loss && npm run start"
-
-[variables]
-PRISMA_CLI_BINARY_TARGETS = "linux-musl-openssl-3.0.x"
+cmd = "npm run start"
