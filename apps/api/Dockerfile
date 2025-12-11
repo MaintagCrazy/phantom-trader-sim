@@ -39,4 +39,5 @@ ENV NODE_ENV=production
 
 EXPOSE 3001
 
-CMD ["node", "dist/index.js"]
+# Run database migration on startup, then start server
+CMD npx prisma db push --accept-data-loss && node dist/index.js
