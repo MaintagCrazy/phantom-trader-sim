@@ -25,7 +25,7 @@ ENV NODE_ENV=production
 ENV EXPO_NO_DOTENV=1
 
 # API URL for production - passed as build arg or use Railway internal networking
-ARG EXPO_PUBLIC_API_URL=https://api-production-1d87.up.railway.app
+ARG EXPO_PUBLIC_API_URL=https://api-production-ae87.up.railway.app
 ENV EXPO_PUBLIC_API_URL=$EXPO_PUBLIC_API_URL
 
 # Clear ALL cached builds

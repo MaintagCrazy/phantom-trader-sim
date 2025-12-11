@@ -10,7 +10,7 @@ const getApiUrl = (): string => {
   // 2. Check if running in browser on railway.app domain
   if (typeof window !== 'undefined' && window.location?.hostname?.includes('railway.app')) {
     // Production: use Railway API URL
-    return 'https://api-production-1d87.up.railway.app';
+    return 'https://api-production-ae87.up.railway.app';
   }
 
   // 3. Default to localhost for development
