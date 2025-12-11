@@ -1,21 +1,16 @@
 import { Tabs } from 'expo-router';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TAB_BAR_HEIGHT = 60;
-const TAB_BAR_SAFE_AREA_HEIGHT = 34; // Default iOS home indicator height
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
 
-  // For web/PWA, use fixed safe area estimate; for native, use actual insets
-  const bottomInset = Platform.OS === 'web'
-    ? TAB_BAR_SAFE_AREA_HEIGHT
-    : insets.bottom;
-
-  const tabBarHeight = TAB_BAR_HEIGHT + bottomInset;
-  const tabBarPaddingBottom = bottomInset > 0 ? bottomInset : 8;
+  // Use actual safe area insets - they work on iOS PWA too
+  const tabBarHeight = TAB_BAR_HEIGHT + insets.bottom;
+  const tabBarPaddingBottom = insets.bottom > 0 ? insets.bottom : 8;
 
   return (
     <Tabs

@@ -76,29 +76,6 @@
         background-color: #131314;
       }
 
-      /* Fill safe areas with background color */
-      html::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: env(safe-area-inset-top, 0px);
-        background-color: #131314;
-        z-index: 9999;
-      }
-
-      html::after {
-        content: '';
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: env(safe-area-inset-bottom, 0px);
-        background-color: #131314;
-        z-index: 9999;
-      }
-
       /* Hide scrollbars everywhere */
       ::-webkit-scrollbar {
         display: none !important;
