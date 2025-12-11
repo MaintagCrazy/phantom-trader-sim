@@ -1,58 +1,6 @@
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import colors from '@/constants/colors';
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: colors.cardBg,
-    borderRadius: 16,
-    marginBottom: 12,
-  },
-  logo: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.shark,
-    marginRight: 12,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoImage: {
-    width: '100%',
-    height: '100%',
-  },
-  logoPlaceholder: {
-    color: colors.white,
-    fontWeight: 'bold',
-  },
-  infoContainer: {
-    flex: 1,
-  },
-  tokenName: {
-    color: colors.white,
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  tokenDetails: {
-    color: colors.gray,
-    fontSize: 12,
-  },
-  priceContainer: {
-    alignItems: 'flex-end',
-  },
-  tokenValue: {
-    color: colors.white,
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  priceChange: {
-    fontSize: 12,
-  },
-});
+import { Ionicons } from '@expo/vector-icons';
 
 interface TokenCardProps {
   id: string;
@@ -64,6 +12,7 @@ interface TokenCardProps {
   currentPrice: number;
   priceChange24h: number;
   showHoldings?: boolean;
+  onPress?: () => void;
 }
 
 export function TokenCard({
@@ -76,26 +25,26 @@ export function TokenCard({
   currentPrice,
   priceChange24h,
   showHoldings = true,
+  onPress,
 }: TokenCardProps) {
   const router = useRouter();
   const isPositive = priceChange24h >= 0;
-  const changeColor = isPositive ? colors.green : colors.red;
 
   const formatCurrency = (value: number) => {
-    if (value >= 1000) {
-      return new Intl.NumberFormat('en-US', {
+    if (value >= 1) {
+      return value.toLocaleString('en-US', {
         style: 'currency',
         currency: 'USD',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      }).format(value);
+      });
     }
-    return new Intl.NumberFormat('en-US', {
+    return value.toLocaleString('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2,
       maximumFractionDigits: 6,
-    }).format(value);
+    });
   };
 
   const formatAmount = (value: number) => {
@@ -105,57 +54,128 @@ export function TokenCard({
     return value.toFixed(value < 0.0001 ? 8 : 4);
   };
 
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    } else {
+      router.push(`/token/${id}`);
+    }
+  };
+
   return (
     <TouchableOpacity
-      onPress={() => router.push(`/token/${id}`)}
+      onPress={handlePress}
       style={styles.container}
       activeOpacity={0.7}
     >
       {/* Token Logo */}
-      <View style={styles.logo}>
+      <View style={styles.logoContainer}>
         {image ? (
-          <Image source={{ uri: image }} style={styles.logoImage} />
+          <Image source={{ uri: image }} style={styles.logo} />
         ) : (
-          <Text style={styles.logoPlaceholder}>{symbol.charAt(0)}</Text>
+          <View style={styles.logoPlaceholder}>
+            <Text style={styles.logoPlaceholderText}>
+              {symbol.charAt(0).toUpperCase()}
+            </Text>
+          </View>
         )}
       </View>
 
       {/* Token Info */}
-      <View style={styles.infoContainer}>
-        <Text style={styles.tokenName}>{name}</Text>
+      <View style={styles.info}>
+        <Text style={styles.name} numberOfLines={1}>{name}</Text>
         {showHoldings && amount !== undefined ? (
-          <Text style={styles.tokenDetails}>
+          <Text style={styles.symbol}>
             {formatAmount(amount)} {symbol.toUpperCase()}
           </Text>
         ) : (
-          <Text style={styles.tokenDetails}>{symbol.toUpperCase()}</Text>
+          <Text style={styles.symbol}>{symbol.toUpperCase()}</Text>
         )}
       </View>
 
       {/* Price Info */}
       <View style={styles.priceContainer}>
-        {showHoldings && currentValue !== undefined ? (
-          <>
-            <Text style={styles.tokenValue}>
-              {formatCurrency(currentValue)}
-            </Text>
-            <Text style={[styles.priceChange, { color: changeColor }]}>
-              {isPositive ? '+' : ''}{priceChange24h.toFixed(2)}%
-            </Text>
-          </>
-        ) : (
-          <>
-            <Text style={styles.tokenValue}>
-              {formatCurrency(currentPrice)}
-            </Text>
-            <Text style={[styles.priceChange, { color: changeColor }]}>
-              {isPositive ? '+' : ''}{priceChange24h.toFixed(2)}%
-            </Text>
-          </>
-        )}
+        <Text style={styles.price}>
+          {showHoldings && currentValue !== undefined
+            ? formatCurrency(currentValue)
+            : formatCurrency(currentPrice)}
+        </Text>
+        <View style={styles.changeContainer}>
+          <Ionicons
+            name={isPositive ? 'arrow-up' : 'arrow-down'}
+            size={12}
+            color={isPositive ? '#30D158' : '#FF453A'}
+          />
+          <Text style={[styles.change, { color: isPositive ? '#30D158' : '#FF453A' }]}>
+            {isPositive ? '+' : ''}{priceChange24h.toFixed(2)}%
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 8,
+  },
+  logoContainer: {
+    marginRight: 12,
+  },
+  logo: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+  },
+  logoPlaceholder: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#2C2D30',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoPlaceholderText: {
+    color: '#8E8E93',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  info: {
+    flex: 1,
+  },
+  name: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  symbol: {
+    color: '#8E8E93',
+    fontSize: 13,
+  },
+  priceContainer: {
+    alignItems: 'flex-end',
+  },
+  price: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  changeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  change: {
+    fontSize: 13,
+    fontWeight: '500',
+    marginLeft: 2,
+  },
+});
 
 export default TokenCard;
