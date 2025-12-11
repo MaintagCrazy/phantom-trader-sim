@@ -125,7 +125,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       {/* ========== FIXED HEADER - Outside ScrollView ========== */}
-      <SafeAreaView edges={Platform.OS === 'web' ? [] : ['top']} style={[styles.headerSafeArea, Platform.OS === 'web' && { paddingTop: 0, marginTop: 0 }]}>
+      <SafeAreaView edges={Platform.OS === 'web' ? [] : ['top']} style={[styles.headerSafeArea, Platform.OS === 'web' && { paddingTop: 47 }]}>
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.headerLeft}
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: Platform.OS === 'web' ? 80 : 90, // Web: 60px tab + 20px padding, Mobile: 60px + safe area
+    paddingBottom: Platform.OS === 'web' ? 110 : 90, // Web: 94px tab (60+34 safe) + 16px padding
     flexGrow: 1,
   },
 
