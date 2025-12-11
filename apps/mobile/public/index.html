@@ -58,11 +58,15 @@
         -webkit-text-size-adjust: 100%;
         touch-action: manipulation;
         position: fixed;
-        /* Extend beyond safe areas to fill entire screen */
-        top: calc(-1 * env(safe-area-inset-top, 0px));
-        left: calc(-1 * env(safe-area-inset-left, 0px));
-        right: calc(-1 * env(safe-area-inset-right, 0px));
-        bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        /* Padding to account for safe areas - content stays inside, background fills outside */
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        padding-left: env(safe-area-inset-left, 0px);
+        padding-right: env(safe-area-inset-right, 0px);
       }
 
       #root {
