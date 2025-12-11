@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, StyleSheet, ActivityIndicator } from 'react-native';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -10,13 +10,10 @@ import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore, Coin } from '@/store/coinsStore';
 
 // Real-time simulation settings
-const PRICE_UPDATE_INTERVAL = 1000; // Update display every 1 second
-const API_REFRESH_INTERVAL = 60000; // Fetch fresh data from API every 60 seconds
-const PULL_THRESHOLD = 80; // Pull distance to trigger refresh
+const PRICE_UPDATE_INTERVAL = 1000;
+const API_REFRESH_INTERVAL = 60000;
 
-// Simulate realistic price fluctuations based on volatility
 const simulatePriceChange = (price: number, volatility: number = 0.0005) => {
-  // Random walk with slight bias toward mean reversion
   const change = (Math.random() - 0.5) * 2 * volatility * price;
   return price + change;
 };
@@ -24,15 +21,9 @@ const simulatePriceChange = (price: number, volatility: number = 0.0005) => {
 export default function HomeScreen() {
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [liveCoins, setLiveCoins] = useState<Coin[]>([]);
-  const [pullDistance, setPullDistance] = useState(0);
-  const [touchStart, setTouchStart] = useState(0);
-  const [isAtTop, setIsAtTop] = useState(true);
   const priceUpdateRef = useRef<NodeJS.Timeout | null>(null);
   const apiRefreshRef = useRef<NodeJS.Timeout | null>(null);
-  const scrollViewRef = useRef<ScrollView>(null);
-  const isWeb = Platform.OS === 'web';
 
   const { userId } = useUserStore();
   const { portfolio, fetchPortfolio } = usePortfolioStore();
@@ -52,22 +43,19 @@ export default function HomeScreen() {
         fetchPortfolio(userId);
       }
       await fetchCoins(1, 50);
-      setLastUpdated(new Date());
     };
     loadData();
   }, [userId]);
 
-  // Real-time price simulation - updates every second
+  // Real-time price simulation
   useEffect(() => {
     priceUpdateRef.current = setInterval(() => {
       setLiveCoins(prevCoins => {
         if (prevCoins.length === 0) return prevCoins;
         return prevCoins.map(coin => {
-          // Higher volatility for smaller market cap coins
           const volatility = coin.marketCapRank <= 10 ? 0.0003 :
                             coin.marketCapRank <= 50 ? 0.0005 : 0.001;
           const newPrice = simulatePriceChange(coin.currentPrice, volatility);
-          // Simulate slight change in 24h percentage too
           const priceChangeAdjust = (Math.random() - 0.5) * 0.02;
           return {
             ...coin,
@@ -79,82 +67,37 @@ export default function HomeScreen() {
     }, PRICE_UPDATE_INTERVAL);
 
     return () => {
-      if (priceUpdateRef.current) {
-        clearInterval(priceUpdateRef.current);
-      }
+      if (priceUpdateRef.current) clearInterval(priceUpdateRef.current);
     };
   }, []);
 
-  // API refresh - fetch real prices periodically to stay accurate
+  // API refresh
   useEffect(() => {
     apiRefreshRef.current = setInterval(async () => {
       await fetchCoins(1, 50);
-      if (userId) {
-        await fetchPortfolio(userId);
-      }
-      setLastUpdated(new Date());
+      if (userId) await fetchPortfolio(userId);
     }, API_REFRESH_INTERVAL);
 
     return () => {
-      if (apiRefreshRef.current) {
-        clearInterval(apiRefreshRef.current);
-      }
+      if (apiRefreshRef.current) clearInterval(apiRefreshRef.current);
     };
   }, [userId]);
 
+  // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
-    if (refreshing) return;
     setRefreshing(true);
-    if (userId) {
-      await fetchPortfolio(userId);
-    }
-    await fetchCoins(1, 50);
-    setLastUpdated(new Date());
-    // Add delay so user sees the refresh happened
-    setTimeout(() => {
-      setRefreshing(false);
-      setPullDistance(0);
-    }, 800);
-  }, [userId, refreshing]);
-
-  // Track scroll position
-  const handleScroll = useCallback((event: any) => {
-    const offsetY = event.nativeEvent.contentOffset.y;
-    setIsAtTop(offsetY <= 0);
-  }, []);
-
-  // Web touch handlers for pull-to-refresh
-  const handleTouchStart = useCallback((e: any) => {
-    if (!isWeb || !isAtTop) return;
-    const touch = e.nativeEvent?.touches?.[0] || e.touches?.[0];
-    if (touch) {
-      setTouchStart(touch.pageY || touch.clientY);
-    }
-  }, [isWeb, isAtTop]);
-
-  const handleTouchMove = useCallback((e: any) => {
-    if (!isWeb || !isAtTop || refreshing || touchStart === 0) return;
-    const touch = e.nativeEvent?.touches?.[0] || e.touches?.[0];
-    if (touch) {
-      const currentY = touch.pageY || touch.clientY;
-      const distance = currentY - touchStart;
-      if (distance > 0) {
-        // Apply resistance to make it feel more natural
-        const resistedDistance = Math.min(distance * 0.5, 120);
-        setPullDistance(resistedDistance);
+    try {
+      if (userId) {
+        await fetchPortfolio(userId);
       }
+      await fetchCoins(1, 50);
+    } catch (error) {
+      console.error('Refresh failed:', error);
+    } finally {
+      // Small delay so user sees spinner
+      setTimeout(() => setRefreshing(false), 500);
     }
-  }, [isWeb, isAtTop, refreshing, touchStart]);
-
-  const handleTouchEnd = useCallback(() => {
-    if (!isWeb) return;
-    if (pullDistance >= PULL_THRESHOLD && !refreshing) {
-      onRefresh();
-    } else {
-      setPullDistance(0);
-    }
-    setTouchStart(0);
-  }, [isWeb, pullDistance, refreshing, onRefresh]);
+  }, [userId]);
 
   // Calculate totals
   const totalValue = portfolio?.totalValue || 0;
@@ -174,75 +117,35 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.accountIcon}>
-            <Text style={styles.accountIconText}>T</Text>
+    <View style={styles.container}>
+      {/* ========== FIXED HEADER - Outside ScrollView ========== */}
+      <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <View style={styles.accountIcon}>
+              <Text style={styles.accountIconText}>T</Text>
+            </View>
+            <Text style={styles.accountName}>Trade Demo</Text>
           </View>
-          <Text style={styles.accountName}>Trade Demo</Text>
+          <TouchableOpacity style={styles.settingsButton}>
+            <Ionicons name="settings-outline" size={24} color="#8E8E93" />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.settingsButton}>
-          <Ionicons name="settings-outline" size={24} color="#8E8E93" />
-        </TouchableOpacity>
-      </View>
+      </SafeAreaView>
 
-      {/* Web Pull-to-Refresh Indicator - Fixed at top */}
-      {isWeb && (
-        <View style={[
-          styles.pullRefreshContainer,
-          {
-            height: refreshing ? 60 : pullDistance,
-            opacity: (refreshing || pullDistance > 10) ? 1 : 0,
-          }
-        ]}>
-          {refreshing ? (
-            <View style={styles.pullRefreshContent}>
-              <ActivityIndicator size="small" color="#4E44CE" />
-              <Text style={styles.pullRefreshText}>Updating prices...</Text>
-            </View>
-          ) : pullDistance > 10 && (
-            <View style={styles.pullRefreshContent}>
-              <Ionicons
-                name={pullDistance >= PULL_THRESHOLD ? "checkmark-circle" : "arrow-down"}
-                size={24}
-                color={pullDistance >= PULL_THRESHOLD ? "#30D158" : "#4E44CE"}
-              />
-              <Text style={[
-                styles.pullRefreshText,
-                pullDistance >= PULL_THRESHOLD && { color: '#30D158' }
-              ]}>
-                {pullDistance >= PULL_THRESHOLD ? 'Release to refresh' : 'Pull down to refresh'}
-              </Text>
-            </View>
-          )}
-        </View>
-      )}
-
+      {/* ========== SCROLLABLE CONTENT ========== */}
       <ScrollView
-        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        bounces={!isWeb}
-        scrollEventThrottle={16}
-        onScroll={handleScroll}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
         refreshControl={
-          !isWeb ? (
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor="#4E44CE"
-              colors={['#4E44CE', '#6B5DD3']}
-              progressBackgroundColor="#1C1C1E"
-              title={refreshing ? "Updating prices..." : "Pull to refresh"}
-              titleColor="#8E8E93"
-            />
-          ) : undefined
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#4E44CE"
+            colors={['#4E44CE']}
+            progressBackgroundColor="#1C1C1E"
+          />
         }
       >
         {/* Balance Section */}
@@ -261,7 +164,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Action Buttons - Phantom Style */}
+        {/* Action Buttons */}
         <View style={styles.actionButtonsContainer}>
           <TouchableOpacity
             style={styles.actionButton}
@@ -357,7 +260,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Popular Tokens - ALWAYS SHOW */}
+        {/* Popular Tokens */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View>
@@ -400,17 +303,17 @@ export default function HomeScreen() {
             ))
           )}
         </View>
-
-        {/* Bottom Spacing */}
-        <View style={{ height: 100 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#131314',
+  },
+  headerSafeArea: {
     backgroundColor: '#131314',
   },
   header: {
@@ -452,24 +355,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 20,
-  },
-  pullRefreshContainer: {
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    backgroundColor: '#131314',
-    overflow: 'hidden',
-    paddingBottom: 12,
-  },
-  pullRefreshContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  pullRefreshText: {
-    color: '#4E44CE',
-    fontSize: 14,
-    fontWeight: '500',
+    paddingBottom: 100, // Space for fixed tab bar
   },
 
   // Balance Section
