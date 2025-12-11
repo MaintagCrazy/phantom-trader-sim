@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { getCoins, getCoin, getCoinChart, Coin } from '@/services/api';
 
+// Re-export Coin type for use in components
+export type { Coin } from '@/services/api';
+
 interface CoinsState {
   coins: Coin[];
   selectedCoin: Coin | null;

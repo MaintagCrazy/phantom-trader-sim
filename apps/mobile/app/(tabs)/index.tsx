@@ -7,20 +7,37 @@ import { LinearGradient } from 'expo-linear-gradient';
 import TokenCard from '@/components/TokenCard';
 import { useUserStore } from '@/store/userStore';
 import { usePortfolioStore } from '@/store/portfolioStore';
-import { useCoinsStore } from '@/store/coinsStore';
+import { useCoinsStore, Coin } from '@/store/coinsStore';
 
-// Auto-refresh interval in milliseconds (30 seconds)
-const AUTO_REFRESH_INTERVAL = 30000;
+// Real-time simulation settings
+const PRICE_UPDATE_INTERVAL = 1000; // Update display every 1 second
+const API_REFRESH_INTERVAL = 60000; // Fetch fresh data from API every 60 seconds
+
+// Simulate realistic price fluctuations based on volatility
+const simulatePriceChange = (price: number, volatility: number = 0.0005) => {
+  // Random walk with slight bias toward mean reversion
+  const change = (Math.random() - 0.5) * 2 * volatility * price;
+  return price + change;
+};
 
 export default function HomeScreen() {
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [liveCoins, setLiveCoins] = useState<Coin[]>([]);
+  const priceUpdateRef = useRef<NodeJS.Timeout | null>(null);
+  const apiRefreshRef = useRef<NodeJS.Timeout | null>(null);
 
   const { userId } = useUserStore();
   const { portfolio, fetchPortfolio } = usePortfolioStore();
   const { coins, fetchCoins, isLoading } = useCoinsStore();
+
+  // Initialize live coins from store
+  useEffect(() => {
+    if (coins.length > 0) {
+      setLiveCoins(coins);
+    }
+  }, [coins]);
 
   // Initial fetch
   useEffect(() => {
@@ -34,20 +51,47 @@ export default function HomeScreen() {
     loadData();
   }, [userId]);
 
-  // Auto-refresh for real-time price updates
+  // Real-time price simulation - updates every second
   useEffect(() => {
-    refreshIntervalRef.current = setInterval(async () => {
-      // Silent refresh - don't show loading indicator
+    priceUpdateRef.current = setInterval(() => {
+      setLiveCoins(prevCoins => {
+        if (prevCoins.length === 0) return prevCoins;
+        return prevCoins.map(coin => {
+          // Higher volatility for smaller market cap coins
+          const volatility = coin.marketCapRank <= 10 ? 0.0003 :
+                            coin.marketCapRank <= 50 ? 0.0005 : 0.001;
+          const newPrice = simulatePriceChange(coin.currentPrice, volatility);
+          // Simulate slight change in 24h percentage too
+          const priceChangeAdjust = (Math.random() - 0.5) * 0.02;
+          return {
+            ...coin,
+            currentPrice: newPrice,
+            priceChange24h: coin.priceChange24h + priceChangeAdjust,
+          };
+        });
+      });
+    }, PRICE_UPDATE_INTERVAL);
+
+    return () => {
+      if (priceUpdateRef.current) {
+        clearInterval(priceUpdateRef.current);
+      }
+    };
+  }, []);
+
+  // API refresh - fetch real prices periodically to stay accurate
+  useEffect(() => {
+    apiRefreshRef.current = setInterval(async () => {
       await fetchCoins(1, 50);
       if (userId) {
         await fetchPortfolio(userId);
       }
       setLastUpdated(new Date());
-    }, AUTO_REFRESH_INTERVAL);
+    }, API_REFRESH_INTERVAL);
 
     return () => {
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current);
+      if (apiRefreshRef.current) {
+        clearInterval(apiRefreshRef.current);
       }
     };
   }, [userId]);
@@ -61,15 +105,6 @@ export default function HomeScreen() {
     setLastUpdated(new Date());
     setRefreshing(false);
   }, [userId]);
-
-  const formatLastUpdated = () => {
-    if (!lastUpdated) return '';
-    const now = new Date();
-    const diff = Math.floor((now.getTime() - lastUpdated.getTime()) / 1000);
-    if (diff < 10) return 'Just now';
-    if (diff < 60) return `${diff}s ago`;
-    return `${Math.floor(diff / 60)}m ago`;
-  };
 
   // Calculate totals
   const totalValue = portfolio?.totalValue || 0;
@@ -188,18 +223,20 @@ export default function HomeScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Your Holdings</Text>
             {holdings.map((holding) => {
-              const coin = coins.find(c => c.id === holding.coinId);
+              const liveCoin = liveCoins.find(c => c.id === holding.coinId);
+              const livePrice = liveCoin?.currentPrice || holding.currentPrice;
+              const liveValue = holding.amount * livePrice;
               return (
                 <TokenCard
                   key={holding.coinId}
                   id={holding.coinId}
                   symbol={holding.symbol}
                   name={holding.name || holding.coinId}
-                  image={coin?.image || holding.image}
+                  image={liveCoin?.image || holding.image}
                   amount={holding.amount}
-                  currentValue={holding.currentValue}
-                  currentPrice={holding.currentPrice}
-                  priceChange24h={coin?.priceChange24h || 0}
+                  currentValue={liveValue}
+                  currentPrice={livePrice}
+                  priceChange24h={liveCoin?.priceChange24h || 0}
                   showHoldings={true}
                 />
               );
@@ -230,21 +267,22 @@ export default function HomeScreen() {
           <View style={styles.sectionHeader}>
             <View>
               <Text style={styles.sectionTitle}>Popular Tokens</Text>
-              {lastUpdated && (
-                <Text style={styles.lastUpdated}>Updated {formatLastUpdated()}</Text>
-              )}
+              <View style={styles.liveIndicator}>
+                <View style={styles.liveDot} />
+                <Text style={styles.liveText}>Live</Text>
+              </View>
             </View>
             <TouchableOpacity onPress={() => router.push('/(tabs)/search')}>
               <Text style={styles.seeAllLink}>See all</Text>
             </TouchableOpacity>
           </View>
 
-          {isLoading && coins.length === 0 ? (
+          {isLoading && liveCoins.length === 0 ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#4E44CE" />
               <Text style={styles.loadingText}>Loading prices...</Text>
             </View>
-          ) : coins.length === 0 ? (
+          ) : liveCoins.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Ionicons name="wifi-outline" size={48} color="#636366" />
               <Text style={styles.emptyText}>Unable to load prices</Text>
@@ -253,7 +291,7 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
           ) : (
-            coins.slice(0, 10).map((coin) => (
+            liveCoins.slice(0, 10).map((coin) => (
               <TokenCard
                 key={coin.id}
                 id={coin.id}
@@ -389,10 +427,22 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
-  lastUpdated: {
-    color: '#636366',
+  liveIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#30D158',
+    marginRight: 6,
+  },
+  liveText: {
+    color: '#30D158',
     fontSize: 12,
-    marginTop: 2,
+    fontWeight: '500',
   },
   seeAllLink: {
     color: '#4E44CE',
