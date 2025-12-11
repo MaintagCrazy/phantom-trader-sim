@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, StyleSheet, ActivityIndicator, Platform, Animated } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -12,6 +12,7 @@ import { useCoinsStore, Coin } from '@/store/coinsStore';
 // Real-time simulation settings
 const PRICE_UPDATE_INTERVAL = 1000; // Update display every 1 second
 const API_REFRESH_INTERVAL = 60000; // Fetch fresh data from API every 60 seconds
+const PULL_THRESHOLD = 80; // Pull distance to trigger refresh
 
 // Simulate realistic price fluctuations based on volatility
 const simulatePriceChange = (price: number, volatility: number = 0.0005) => {
@@ -26,6 +27,8 @@ export default function HomeScreen() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [liveCoins, setLiveCoins] = useState<Coin[]>([]);
   const [pullDistance, setPullDistance] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [isAtTop, setIsAtTop] = useState(true);
   const priceUpdateRef = useRef<NodeJS.Timeout | null>(null);
   const apiRefreshRef = useRef<NodeJS.Timeout | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -100,32 +103,58 @@ export default function HomeScreen() {
   }, [userId]);
 
   const onRefresh = useCallback(async () => {
+    if (refreshing) return;
     setRefreshing(true);
-    setPullDistance(0);
     if (userId) {
       await fetchPortfolio(userId);
     }
     await fetchCoins(1, 50);
     setLastUpdated(new Date());
-    // Add small delay so user sees the refresh happened
+    // Add delay so user sees the refresh happened
     setTimeout(() => {
       setRefreshing(false);
-    }, 500);
-  }, [userId]);
+      setPullDistance(0);
+    }, 800);
+  }, [userId, refreshing]);
 
-  // Web pull-to-refresh handler
+  // Track scroll position
   const handleScroll = useCallback((event: any) => {
-    if (!isWeb) return;
     const offsetY = event.nativeEvent.contentOffset.y;
-    if (offsetY < 0 && !refreshing) {
-      setPullDistance(Math.abs(offsetY));
-      if (Math.abs(offsetY) > 80) {
-        onRefresh();
+    setIsAtTop(offsetY <= 0);
+  }, []);
+
+  // Web touch handlers for pull-to-refresh
+  const handleTouchStart = useCallback((e: any) => {
+    if (!isWeb || !isAtTop) return;
+    const touch = e.nativeEvent?.touches?.[0] || e.touches?.[0];
+    if (touch) {
+      setTouchStart(touch.pageY || touch.clientY);
+    }
+  }, [isWeb, isAtTop]);
+
+  const handleTouchMove = useCallback((e: any) => {
+    if (!isWeb || !isAtTop || refreshing || touchStart === 0) return;
+    const touch = e.nativeEvent?.touches?.[0] || e.touches?.[0];
+    if (touch) {
+      const currentY = touch.pageY || touch.clientY;
+      const distance = currentY - touchStart;
+      if (distance > 0) {
+        // Apply resistance to make it feel more natural
+        const resistedDistance = Math.min(distance * 0.5, 120);
+        setPullDistance(resistedDistance);
       }
-    } else if (offsetY >= 0) {
+    }
+  }, [isWeb, isAtTop, refreshing, touchStart]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!isWeb) return;
+    if (pullDistance >= PULL_THRESHOLD && !refreshing) {
+      onRefresh();
+    } else {
       setPullDistance(0);
     }
-  }, [isWeb, refreshing, onRefresh]);
+    setTouchStart(0);
+  }, [isWeb, pullDistance, refreshing, onRefresh]);
 
   // Calculate totals
   const totalValue = portfolio?.totalValue || 0;
@@ -159,15 +188,49 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Web Pull-to-Refresh Indicator - Fixed at top */}
+      {isWeb && (
+        <View style={[
+          styles.pullRefreshContainer,
+          {
+            height: refreshing ? 60 : pullDistance,
+            opacity: (refreshing || pullDistance > 10) ? 1 : 0,
+          }
+        ]}>
+          {refreshing ? (
+            <View style={styles.pullRefreshContent}>
+              <ActivityIndicator size="small" color="#4E44CE" />
+              <Text style={styles.pullRefreshText}>Updating prices...</Text>
+            </View>
+          ) : pullDistance > 10 && (
+            <View style={styles.pullRefreshContent}>
+              <Ionicons
+                name={pullDistance >= PULL_THRESHOLD ? "checkmark-circle" : "arrow-down"}
+                size={24}
+                color={pullDistance >= PULL_THRESHOLD ? "#30D158" : "#4E44CE"}
+              />
+              <Text style={[
+                styles.pullRefreshText,
+                pullDistance >= PULL_THRESHOLD && { color: '#30D158' }
+              ]}>
+                {pullDistance >= PULL_THRESHOLD ? 'Release to refresh' : 'Pull down to refresh'}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
+
       <ScrollView
         ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        bounces={true}
-        alwaysBounceVertical={true}
+        bounces={!isWeb}
         scrollEventThrottle={16}
         onScroll={handleScroll}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         refreshControl={
           !isWeb ? (
             <RefreshControl
@@ -182,30 +245,6 @@ export default function HomeScreen() {
           ) : undefined
         }
       >
-        {/* Web Pull-to-Refresh Indicator */}
-        {isWeb && (refreshing || pullDistance > 0) && (
-          <View style={[styles.pullRefreshContainer, { height: refreshing ? 60 : Math.min(pullDistance, 80) }]}>
-            {refreshing ? (
-              <>
-                <ActivityIndicator size="small" color="#4E44CE" />
-                <Text style={styles.pullRefreshText}>Updating prices...</Text>
-              </>
-            ) : (
-              <>
-                <Ionicons
-                  name="arrow-down"
-                  size={20}
-                  color="#4E44CE"
-                  style={{ transform: [{ rotate: pullDistance > 60 ? '180deg' : '0deg' }] }}
-                />
-                <Text style={styles.pullRefreshText}>
-                  {pullDistance > 60 ? 'Release to refresh' : 'Pull to refresh'}
-                </Text>
-              </>
-            )}
-          </View>
-        )}
-
         {/* Balance Section */}
         <View style={styles.balanceSection}>
           <Text style={styles.balanceLabel}>Total Balance</Text>
@@ -417,10 +456,15 @@ const styles = StyleSheet.create({
   },
   pullRefreshContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: 8,
+    justifyContent: 'flex-end',
+    backgroundColor: '#131314',
     overflow: 'hidden',
+    paddingBottom: 12,
+  },
+  pullRefreshContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   pullRefreshText: {
     color: '#4E44CE',
