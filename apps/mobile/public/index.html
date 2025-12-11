@@ -29,21 +29,58 @@
 
     <!-- Expo/React Native Web Styles -->
     <style>
-      html, body, #root {
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html {
         width: 100%;
         height: 100%;
+        height: 100dvh; /* Dynamic viewport height for mobile */
         margin: 0;
         padding: 0;
         overflow: hidden;
         background-color: #131314;
+        /* Prevent overscroll/bounce */
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      body {
+        width: 100%;
+        height: 100%;
+        height: 100dvh;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #131314;
+        overscroll-behavior: none;
+        /* Remove any browser default padding */
+        -webkit-text-size-adjust: 100%;
+        /* Prevent pull-to-refresh on mobile browsers */
+        touch-action: pan-x pan-y;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
       }
       #root {
+        width: 100%;
+        height: 100%;
         display: flex;
-        flex: 1;
+        flex-direction: column;
+        overflow: hidden;
+        background-color: #131314;
       }
-      /* Safe area support for iOS */
-      body {
-        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      /* Hide scrollbars everywhere */
+      ::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+      }
+      * {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
       }
     </style>
   </head>

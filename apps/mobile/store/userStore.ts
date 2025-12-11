@@ -1,7 +1,26 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createUser, getUser } from '@/services/api';
+
+// Use localStorage for web, AsyncStorage for native
+const storage = Platform.OS === 'web'
+  ? {
+      getItem: (name: string) => {
+        const value = localStorage.getItem(name);
+        return Promise.resolve(value);
+      },
+      setItem: (name: string, value: string) => {
+        localStorage.setItem(name, value);
+        return Promise.resolve();
+      },
+      removeItem: (name: string) => {
+        localStorage.removeItem(name);
+        return Promise.resolve();
+      },
+    }
+  : AsyncStorage;
 
 interface UserState {
   userId: string | null;
@@ -72,7 +91,7 @@ export const useUserStore = create<UserState>()(
     }),
     {
       name: 'user-storage',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => storage),
       partialize: (state) => ({
         userId: state.userId,
         username: state.username,
