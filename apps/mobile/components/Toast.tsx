@@ -1,4 +1,4 @@
-import { View, Text, Animated } from 'react-native';
+import { View, Text, Animated, StyleSheet } from 'react-native';
 import { useEffect, useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { create } from 'zustand';
@@ -26,6 +26,15 @@ export const useToast = create<ToastState>((set) => ({
   },
   hide: () => set({ visible: false }),
 }));
+
+const styles = StyleSheet.create({
+  container: { position: 'absolute', top: 48, left: 16, right: 16, zIndex: 50 },
+  content: { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 12, backgroundColor: colors.cardBg },
+  iconContainer: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  textContainer: { flex: 1 },
+  title: { color: colors.white, fontWeight: '600' },
+  message: { color: colors.gray, fontSize: 14 },
+});
 
 // Toast component
 export function Toast() {
@@ -64,25 +73,14 @@ export function Toast() {
   };
 
   return (
-    <Animated.View
-      className="absolute top-12 left-4 right-4 z-50"
-      style={{ transform: [{ translateY }] }}
-    >
-      <View
-        className="flex-row items-center p-4 rounded-xl"
-        style={{ backgroundColor: colors.cardBg }}
-      >
-        <View
-          className="w-10 h-10 rounded-full items-center justify-center mr-3"
-          style={{ backgroundColor: `${getColor()}20` }}
-        >
+    <Animated.View style={[styles.container, { transform: [{ translateY }] }]}>
+      <View style={styles.content}>
+        <View style={[styles.iconContainer, { backgroundColor: `${getColor()}20` }]}>
           <Ionicons name={getIcon()} size={24} color={getColor()} />
         </View>
-        <View className="flex-1">
-          <Text className="text-white font-semibold">{title}</Text>
-          {message && (
-            <Text className="text-gray-400 text-sm">{message}</Text>
-          )}
+        <View style={styles.textContainer}>
+          <Text style={styles.title}>{title}</Text>
+          {message && <Text style={styles.message}>{message}</Text>}
         </View>
       </View>
     </Animated.View>

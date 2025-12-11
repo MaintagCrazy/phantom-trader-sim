@@ -1,6 +1,46 @@
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '@/constants/colors';
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: colors.purpleDark,
+  },
+  titleSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.purpleHeart,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  logoText: {
+    color: colors.white,
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  title: {
+    color: colors.white,
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  settingsButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
 
 interface HeaderProps {
   title?: string;
@@ -10,21 +50,18 @@ interface HeaderProps {
 
 export function Header({ title = 'Trade Demo', showSettings = true, onSettingsPress }: HeaderProps) {
   return (
-    <View
-      className="flex-row items-center justify-between px-4 py-3"
-      style={{ backgroundColor: colors.purpleDark }}
-    >
-      <View className="flex-row items-center">
-        <View className="w-8 h-8 rounded-full bg-purple-heart items-center justify-center mr-2">
-          <Text className="text-white font-bold text-lg">T</Text>
+    <View style={styles.container}>
+      <View style={styles.titleSection}>
+        <View style={styles.logo}>
+          <Text style={styles.logoText}>T</Text>
         </View>
-        <Text className="text-white text-lg font-semibold">{title}</Text>
+        <Text style={styles.title}>{title}</Text>
       </View>
 
       {showSettings && (
         <TouchableOpacity
           onPress={onSettingsPress}
-          className="w-10 h-10 items-center justify-center"
+          style={styles.settingsButton}
         >
           <Ionicons name="settings-outline" size={24} color={colors.white} />
         </TouchableOpacity>

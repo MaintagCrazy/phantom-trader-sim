@@ -1,4 +1,4 @@
-import { View, ScrollView, RefreshControl } from 'react-native';
+import { View, ScrollView, RefreshControl, StyleSheet, Text } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,6 +11,64 @@ import { useUserStore } from '@/store/userStore';
 import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore } from '@/store/coinsStore';
 import colors from '@/constants/colors';
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.darkBg,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  holdingsContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  cashCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: colors.cardBg,
+    borderRadius: 16,
+    marginBottom: 12,
+  },
+  cashIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.green,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  cashIconInner: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.white,
+  },
+  cashInfo: {
+    flex: 1,
+  },
+  cashLabel: {
+    color: colors.white,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  cashSubLabel: {
+    color: colors.gray,
+    fontSize: 12,
+  },
+  cashAmount: {
+    alignItems: 'flex-end',
+  },
+  cashValue: {
+    color: colors.white,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+});
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -36,11 +94,11 @@ export default function HomeScreen() {
   const hasCash = portfolio && portfolio.cashBalance > 0;
 
   return (
-    <SafeAreaView className="flex-1 bg-dark-bg" edges={['top']}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <Header />
 
       <ScrollView
-        className="flex-1"
+        style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -61,7 +119,7 @@ export default function HomeScreen() {
         <QuickActions />
 
         {/* Holdings List */}
-        <View className="px-4 pb-4">
+        <View style={styles.holdingsContainer}>
           {!hasHoldings && !hasCash ? (
             <EmptyState
               icon="wallet-outline"
@@ -74,18 +132,18 @@ export default function HomeScreen() {
             <>
               {/* Cash Balance Card */}
               {hasCash && (
-                <View className="flex-row items-center p-4 bg-card-bg rounded-2xl mb-3">
-                  <View className="w-10 h-10 rounded-full bg-profit items-center justify-center mr-3">
-                    <View className="w-6 h-6 rounded-full border-2 border-white" />
+                <View style={styles.cashCard}>
+                  <View style={styles.cashIcon}>
+                    <View style={styles.cashIconInner} />
                   </View>
-                  <View className="flex-1">
-                    <View className="text-white font-semibold text-base">USD Cash</View>
-                    <View className="text-gray-400 text-sm">Available to trade</View>
+                  <View style={styles.cashInfo}>
+                    <Text style={styles.cashLabel}>USD Cash</Text>
+                    <Text style={styles.cashSubLabel}>Available to trade</Text>
                   </View>
-                  <View className="items-end">
-                    <View className="text-white font-semibold text-base">
+                  <View style={styles.cashAmount}>
+                    <Text style={styles.cashValue}>
                       ${portfolio?.cashBalance.toFixed(2)}
-                    </View>
+                    </Text>
                   </View>
                 </View>
               )}

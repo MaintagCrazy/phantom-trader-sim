@@ -1,7 +1,32 @@
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '@/constants/colors';
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+  },
+  actionButton: {
+    alignItems: 'center',
+  },
+  actionCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.purpleDark,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  actionLabel: {
+    color: colors.white,
+    fontSize: 12,
+  },
+});
 
 interface QuickActionProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -13,16 +38,13 @@ function QuickAction({ icon, label, onPress }: QuickActionProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="items-center"
+      style={styles.actionButton}
       activeOpacity={0.7}
     >
-      <View
-        className="w-14 h-14 rounded-full items-center justify-center mb-2"
-        style={{ backgroundColor: colors.purpleDark }}
-      >
+      <View style={styles.actionCircle}>
         <Ionicons name={icon} size={24} color={colors.white} />
       </View>
-      <Text className="text-white text-sm">{label}</Text>
+      <Text style={styles.actionLabel}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -31,7 +53,7 @@ export function QuickActions() {
   const router = useRouter();
 
   return (
-    <View className="flex-row justify-around py-6 px-4">
+    <View style={styles.container}>
       <QuickAction
         icon="add"
         label="Deposit"

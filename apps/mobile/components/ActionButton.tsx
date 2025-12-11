@@ -1,6 +1,47 @@
-import { TouchableOpacity, Text, ActivityIndicator, View } from 'react-native';
+import { TouchableOpacity, Text, ActivityIndicator, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '@/constants/colors';
+
+const styles = StyleSheet.create({
+  smallButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  mediumButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  largeButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+  },
+  fullWidth: {
+    width: '100%',
+  },
+  flexRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  roundedXl: {
+    borderRadius: 12,
+  },
+  smallText: {
+    fontSize: 12,
+  },
+  baseText: {
+    fontSize: 14,
+  },
+  largeText: {
+    fontSize: 16,
+  },
+  fontSemibold: {
+    fontWeight: '600',
+  },
+  outlineStyle: {
+    borderWidth: 2,
+  },
+});
 
 interface ActionButtonProps {
   title: string;
@@ -47,29 +88,29 @@ export function ActionButton({
     return colors.white;
   };
 
-  const getPadding = () => {
+  const getPaddingStyle = () => {
     switch (size) {
       case 'small':
-        return 'py-2 px-4';
+        return styles.smallButton;
       case 'medium':
-        return 'py-3 px-6';
+        return styles.mediumButton;
       case 'large':
-        return 'py-4 px-8';
+        return styles.largeButton;
       default:
-        return 'py-3 px-6';
+        return styles.mediumButton;
     }
   };
 
   const getTextSize = () => {
     switch (size) {
       case 'small':
-        return 'text-sm';
+        return styles.smallText;
       case 'medium':
-        return 'text-base';
+        return styles.baseText;
       case 'large':
-        return 'text-lg';
+        return styles.largeText;
       default:
-        return 'text-base';
+        return styles.baseText;
     }
   };
 
@@ -78,21 +119,22 @@ export function ActionButton({
       onPress={onPress}
       disabled={disabled || loading}
       activeOpacity={0.8}
-      style={{
-        backgroundColor: getBackgroundColor(),
-        borderColor: getBorderColor(),
-        borderWidth: variant === 'outline' ? 2 : 0,
-      }}
-      className={`
-        flex-row items-center justify-center rounded-xl
-        ${getPadding()}
-        ${fullWidth ? 'w-full' : ''}
-      `}
+      style={[
+        getPaddingStyle(),
+        styles.flexRow,
+        styles.roundedXl,
+        {
+          backgroundColor: getBackgroundColor(),
+          borderColor: getBorderColor(),
+          borderWidth: variant === 'outline' ? 2 : 0,
+        },
+        fullWidth && styles.fullWidth,
+      ]}
     >
       {loading ? (
         <ActivityIndicator color={getTextColor()} />
       ) : (
-        <View className="flex-row items-center">
+        <View style={styles.flexRow}>
           {icon && (
             <Ionicons
               name={icon}
@@ -102,8 +144,11 @@ export function ActionButton({
             />
           )}
           <Text
-            style={{ color: getTextColor() }}
-            className={`font-semibold ${getTextSize()}`}
+            style={[
+              { color: getTextColor() },
+              styles.fontSemibold,
+              getTextSize(),
+            ]}
           >
             {title}
           </Text>

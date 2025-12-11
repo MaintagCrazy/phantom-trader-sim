@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import colors from '@/constants/colors';
 
 interface BalanceDisplayProps {
@@ -6,6 +6,36 @@ interface BalanceDisplayProps {
   pnl: number;
   pnlPercent: number;
 }
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  label: {
+    color: colors.gray,
+    fontSize: 12,
+    marginBottom: 8,
+  },
+  amount: {
+    color: colors.white,
+    fontSize: 36,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  pnlContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pnlText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  pnlPercent: {
+    fontSize: 16,
+    marginLeft: 8,
+  },
+});
 
 export function BalanceDisplay({ totalValue, pnl, pnlPercent }: BalanceDisplayProps) {
   const isPositive = pnl >= 0;
@@ -26,16 +56,16 @@ export function BalanceDisplay({ totalValue, pnl, pnlPercent }: BalanceDisplayPr
   };
 
   return (
-    <View className="items-center py-8">
-      <Text className="text-gray-400 text-sm mb-2">Total Balance</Text>
-      <Text className="text-white text-4xl font-bold mb-2">
+    <View style={styles.container}>
+      <Text style={styles.label}>Total Balance</Text>
+      <Text style={styles.amount}>
         {formatCurrency(totalValue)}
       </Text>
-      <View className="flex-row items-center">
-        <Text style={{ color: pnlColor }} className="text-base font-medium">
+      <View style={styles.pnlContainer}>
+        <Text style={[styles.pnlText, { color: pnlColor }]}>
           {isPositive ? '+' : ''}{formatCurrency(Math.abs(pnl))}
         </Text>
-        <Text style={{ color: pnlColor }} className="text-base ml-2">
+        <Text style={[styles.pnlPercent, { color: pnlColor }]}>
           ({formatPercent(pnlPercent)})
         </Text>
       </View>

@@ -1,6 +1,58 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import colors from '@/constants/colors';
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: colors.cardBg,
+    borderRadius: 16,
+    marginBottom: 12,
+  },
+  logo: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.shark,
+    marginRight: 12,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoImage: {
+    width: '100%',
+    height: '100%',
+  },
+  logoPlaceholder: {
+    color: colors.white,
+    fontWeight: 'bold',
+  },
+  infoContainer: {
+    flex: 1,
+  },
+  tokenName: {
+    color: colors.white,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  tokenDetails: {
+    color: colors.gray,
+    fontSize: 12,
+  },
+  priceContainer: {
+    alignItems: 'flex-end',
+  },
+  tokenValue: {
+    color: colors.white,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  priceChange: {
+    fontSize: 12,
+  },
+});
 
 interface TokenCardProps {
   id: string;
@@ -56,49 +108,47 @@ export function TokenCard({
   return (
     <TouchableOpacity
       onPress={() => router.push(`/token/${id}`)}
-      className="flex-row items-center p-4 bg-card-bg rounded-2xl mb-3"
+      style={styles.container}
       activeOpacity={0.7}
     >
       {/* Token Logo */}
-      <View className="w-10 h-10 rounded-full bg-shark mr-3 overflow-hidden">
+      <View style={styles.logo}>
         {image ? (
-          <Image source={{ uri: image }} className="w-full h-full" />
+          <Image source={{ uri: image }} style={styles.logoImage} />
         ) : (
-          <View className="w-full h-full items-center justify-center">
-            <Text className="text-white font-bold">{symbol.charAt(0)}</Text>
-          </View>
+          <Text style={styles.logoPlaceholder}>{symbol.charAt(0)}</Text>
         )}
       </View>
 
       {/* Token Info */}
-      <View className="flex-1">
-        <Text className="text-white font-semibold text-base">{name}</Text>
+      <View style={styles.infoContainer}>
+        <Text style={styles.tokenName}>{name}</Text>
         {showHoldings && amount !== undefined ? (
-          <Text className="text-gray-400 text-sm">
+          <Text style={styles.tokenDetails}>
             {formatAmount(amount)} {symbol.toUpperCase()}
           </Text>
         ) : (
-          <Text className="text-gray-400 text-sm">{symbol.toUpperCase()}</Text>
+          <Text style={styles.tokenDetails}>{symbol.toUpperCase()}</Text>
         )}
       </View>
 
       {/* Price Info */}
-      <View className="items-end">
+      <View style={styles.priceContainer}>
         {showHoldings && currentValue !== undefined ? (
           <>
-            <Text className="text-white font-semibold text-base">
+            <Text style={styles.tokenValue}>
               {formatCurrency(currentValue)}
             </Text>
-            <Text style={{ color: changeColor }} className="text-sm">
+            <Text style={[styles.priceChange, { color: changeColor }]}>
               {isPositive ? '+' : ''}{priceChange24h.toFixed(2)}%
             </Text>
           </>
         ) : (
           <>
-            <Text className="text-white font-semibold text-base">
+            <Text style={styles.tokenValue}>
               {formatCurrency(currentPrice)}
             </Text>
-            <Text style={{ color: changeColor }} className="text-sm">
+            <Text style={[styles.priceChange, { color: changeColor }]}>
               {isPositive ? '+' : ''}{priceChange24h.toFixed(2)}%
             </Text>
           </>

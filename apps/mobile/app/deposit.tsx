@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +10,32 @@ import colors from '@/constants/colors';
 
 const QUICK_AMOUNTS = ['100', '500', '1000', '5000'];
 
+const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: colors.darkBg },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
+  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { color: colors.white, fontSize: 18, fontWeight: '600' },
+  placeholder: { width: 40 },
+  content: { flex: 1, paddingHorizontal: 16 },
+  illustration: { alignItems: 'center', paddingVertical: 48 },
+  iconCircle: { width: 96, height: 96, borderRadius: 48, backgroundColor: colors.purpleDark, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+  title: { color: colors.white, fontSize: 20, fontWeight: '600', marginBottom: 8 },
+  subtitle: { color: colors.gray, textAlign: 'center' },
+  inputCard: { backgroundColor: colors.cardBg, borderRadius: 16, padding: 24, marginBottom: 24 },
+  inputLabel: { color: colors.gray, fontSize: 14, marginBottom: 8, textAlign: 'center' },
+  inputRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  dollarSign: { color: colors.white, fontSize: 36, fontWeight: '700', marginRight: 8 },
+  amountInput: { color: colors.white, fontSize: 36, fontWeight: '700', minWidth: 100, textAlign: 'center' },
+  quickBtns: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 32 },
+  quickBtn: { flex: 1, marginHorizontal: 4, paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
+  quickBtnActive: { backgroundColor: colors.purpleHeart },
+  quickBtnInactive: { backgroundColor: colors.cardBg },
+  quickBtnText: { fontWeight: '600' },
+  quickBtnTextActive: { color: colors.white },
+  quickBtnTextInactive: { color: colors.gray },
+  disclaimer: { color: colors.gray, fontSize: 12, textAlign: 'center', marginTop: 24 },
+});
+
 export default function DepositScreen() {
   const router = useRouter();
   const { userId } = useUserStore();
@@ -18,103 +44,54 @@ export default function DepositScreen() {
 
   const handleDeposit = async () => {
     if (!userId) return;
-
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum <= 0) {
       Alert.alert('Error', 'Please enter a valid amount');
       return;
     }
-
     const success = await deposit(userId, amountNum);
     if (success) {
-      Alert.alert('Success', `Deposited $${amountNum.toFixed(2)}`, [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      Alert.alert('Success', `Deposited $${amountNum.toFixed(2)}`, [{ text: 'OK', onPress: () => router.back() }]);
     }
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-dark-bg" edges={['top']}>
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center"
-        >
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="close" size={24} color={colors.white} />
         </TouchableOpacity>
-        <Text className="text-white text-lg font-semibold">Add Demo Funds</Text>
-        <View className="w-10" />
+        <Text style={styles.headerTitle}>Add Demo Funds</Text>
+        <View style={styles.placeholder} />
       </View>
 
-      <View className="flex-1 px-4">
-        {/* Illustration */}
-        <View className="items-center py-12">
-          <View className="w-24 h-24 rounded-full bg-purple-dark items-center justify-center mb-6">
+      <View style={styles.content}>
+        <View style={styles.illustration}>
+          <View style={styles.iconCircle}>
             <Ionicons name="wallet" size={48} color={colors.purpleLight} />
           </View>
-          <Text className="text-white text-xl font-semibold mb-2">
-            Add Demo Funds
-          </Text>
-          <Text className="text-gray-400 text-center">
-            This is fake money for paper trading.{'\n'}
-            Practice trading risk-free!
-          </Text>
+          <Text style={styles.title}>Add Demo Funds</Text>
+          <Text style={styles.subtitle}>This is fake money for paper trading.{'\n'}Practice trading risk-free!</Text>
         </View>
 
-        {/* Amount Input */}
-        <View className="bg-card-bg rounded-2xl p-6 mb-6">
-          <Text className="text-gray-400 text-sm mb-2 text-center">Amount (USD)</Text>
-          <View className="flex-row items-center justify-center">
-            <Text className="text-white text-4xl font-bold mr-2">$</Text>
-            <TextInput
-              className="text-white text-4xl font-bold min-w-[100px] text-center"
-              placeholder="0"
-              placeholderTextColor={colors.gray}
-              keyboardType="decimal-pad"
-              value={amount}
-              onChangeText={setAmount}
-              autoFocus
-            />
+        <View style={styles.inputCard}>
+          <Text style={styles.inputLabel}>Amount (USD)</Text>
+          <View style={styles.inputRow}>
+            <Text style={styles.dollarSign}>$</Text>
+            <TextInput style={styles.amountInput} placeholder="0" placeholderTextColor={colors.gray} keyboardType="decimal-pad" value={amount} onChangeText={setAmount} autoFocus />
           </View>
         </View>
 
-        {/* Quick Amount Buttons */}
-        <View className="flex-row justify-between mb-8">
+        <View style={styles.quickBtns}>
           {QUICK_AMOUNTS.map((amt) => (
-            <TouchableOpacity
-              key={amt}
-              onPress={() => setAmount(amt)}
-              className={`flex-1 mx-1 py-3 rounded-xl items-center ${
-                amount === amt ? 'bg-purple-heart' : 'bg-card-bg'
-              }`}
-            >
-              <Text
-                className={`font-semibold ${
-                  amount === amt ? 'text-white' : 'text-gray-400'
-                }`}
-              >
-                ${amt}
-              </Text>
+            <TouchableOpacity key={amt} onPress={() => setAmount(amt)} style={[styles.quickBtn, amount === amt ? styles.quickBtnActive : styles.quickBtnInactive]}>
+              <Text style={[styles.quickBtnText, amount === amt ? styles.quickBtnTextActive : styles.quickBtnTextInactive]}>${amt}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Deposit Button */}
-        <ActionButton
-          title={isLoading ? 'Adding Funds...' : `Deposit $${amount || '0'}`}
-          onPress={handleDeposit}
-          fullWidth
-          size="large"
-          disabled={!amount || parseFloat(amount) <= 0 || isLoading}
-          loading={isLoading}
-        />
-
-        {/* Disclaimer */}
-        <Text className="text-gray-400 text-xs text-center mt-6">
-          This is a demo account with simulated funds.{'\n'}
-          Real cryptocurrency is not involved.
-        </Text>
+        <ActionButton title={isLoading ? 'Adding Funds...' : `Deposit $${amount || '0'}`} onPress={handleDeposit} fullWidth size="large" disabled={!amount || parseFloat(amount) <= 0 || isLoading} loading={isLoading} />
+        <Text style={styles.disclaimer}>This is a demo account with simulated funds.{'\n'}Real cryptocurrency is not involved.</Text>
       </View>
     </SafeAreaView>
   );

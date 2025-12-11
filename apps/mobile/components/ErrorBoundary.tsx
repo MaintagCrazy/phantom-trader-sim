@@ -1,5 +1,5 @@
 import React, { Component, ReactNode } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '@/constants/colors';
 
@@ -12,6 +12,15 @@ interface State {
   hasError: boolean;
   error?: Error;
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.darkBg, alignItems: 'center', justifyContent: 'center', padding: 32 },
+  iconContainer: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  title: { color: colors.white, fontSize: 18, fontWeight: '600', textAlign: 'center', marginBottom: 8 },
+  message: { color: colors.gray, textAlign: 'center', marginBottom: 24 },
+  retryButton: { backgroundColor: colors.purpleHeart, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
+  retryText: { color: colors.white, fontWeight: '600' },
+});
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };
@@ -32,24 +41,16 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         this.props.fallback || (
-          <View className="flex-1 bg-dark-bg items-center justify-center p-8">
-            <View
-              className="w-20 h-20 rounded-full items-center justify-center mb-4"
-              style={{ backgroundColor: `${colors.red}20` }}
-            >
+          <View style={styles.container}>
+            <View style={[styles.iconContainer, { backgroundColor: `${colors.red}20` }]}>
               <Ionicons name="warning" size={40} color={colors.red} />
             </View>
-            <Text className="text-white text-lg font-semibold text-center mb-2">
-              Something went wrong
-            </Text>
-            <Text className="text-gray-400 text-center mb-6">
+            <Text style={styles.title}>Something went wrong</Text>
+            <Text style={styles.message}>
               {this.state.error?.message || 'An unexpected error occurred'}
             </Text>
-            <TouchableOpacity
-              className="bg-purple-heart px-6 py-3 rounded-xl"
-              onPress={this.handleRetry}
-            >
-              <Text className="text-white font-semibold">Try Again</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={this.handleRetry}>
+              <Text style={styles.retryText}>Try Again</Text>
             </TouchableOpacity>
           </View>
         )

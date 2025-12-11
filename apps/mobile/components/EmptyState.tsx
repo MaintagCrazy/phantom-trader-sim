@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ActionButton from './ActionButton';
 import colors from '@/constants/colors';
@@ -11,6 +11,13 @@ interface EmptyStateProps {
   onAction?: () => void;
 }
 
+const styles = StyleSheet.create({
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
+  iconContainer: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: 24, backgroundColor: colors.cardBg },
+  title: { color: colors.white, fontSize: 20, fontWeight: '600', marginBottom: 8, textAlign: 'center' },
+  description: { color: colors.gray, textAlign: 'center', marginBottom: 24 },
+});
+
 export function EmptyState({
   icon,
   title,
@@ -19,19 +26,12 @@ export function EmptyState({
   onAction,
 }: EmptyStateProps) {
   return (
-    <View className="flex-1 items-center justify-center px-8">
-      <View
-        className="w-20 h-20 rounded-full items-center justify-center mb-6"
-        style={{ backgroundColor: colors.cardBg }}
-      >
+    <View style={styles.container}>
+      <View style={styles.iconContainer}>
         <Ionicons name={icon} size={40} color={colors.gray} />
       </View>
-      <Text className="text-white text-xl font-semibold mb-2 text-center">
-        {title}
-      </Text>
-      <Text className="text-gray-400 text-center mb-6">
-        {description}
-      </Text>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.description}>{description}</Text>
       {actionTitle && onAction && (
         <ActionButton
           title={actionTitle}
