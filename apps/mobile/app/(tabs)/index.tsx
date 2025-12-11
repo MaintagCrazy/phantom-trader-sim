@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, StyleSheet, ActivityIndicator, Platform, Animated } from 'react-native';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -25,8 +25,11 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [liveCoins, setLiveCoins] = useState<Coin[]>([]);
+  const [pullDistance, setPullDistance] = useState(0);
   const priceUpdateRef = useRef<NodeJS.Timeout | null>(null);
   const apiRefreshRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const isWeb = Platform.OS === 'web';
 
   const { userId } = useUserStore();
   const { portfolio, fetchPortfolio } = usePortfolioStore();
@@ -98,13 +101,31 @@ export default function HomeScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+    setPullDistance(0);
     if (userId) {
       await fetchPortfolio(userId);
     }
     await fetchCoins(1, 50);
     setLastUpdated(new Date());
-    setRefreshing(false);
+    // Add small delay so user sees the refresh happened
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 500);
   }, [userId]);
+
+  // Web pull-to-refresh handler
+  const handleScroll = useCallback((event: any) => {
+    if (!isWeb) return;
+    const offsetY = event.nativeEvent.contentOffset.y;
+    if (offsetY < 0 && !refreshing) {
+      setPullDistance(Math.abs(offsetY));
+      if (Math.abs(offsetY) > 80) {
+        onRefresh();
+      }
+    } else if (offsetY >= 0) {
+      setPullDistance(0);
+    }
+  }, [isWeb, refreshing, onRefresh]);
 
   // Calculate totals
   const totalValue = portfolio?.totalValue || 0;
@@ -139,17 +160,52 @@ export default function HomeScreen() {
       </View>
 
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        bounces={true}
+        alwaysBounceVertical={true}
+        scrollEventThrottle={16}
+        onScroll={handleScroll}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#4E44CE"
-          />
+          !isWeb ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#4E44CE"
+              colors={['#4E44CE', '#6B5DD3']}
+              progressBackgroundColor="#1C1C1E"
+              title={refreshing ? "Updating prices..." : "Pull to refresh"}
+              titleColor="#8E8E93"
+            />
+          ) : undefined
         }
       >
+        {/* Web Pull-to-Refresh Indicator */}
+        {isWeb && (refreshing || pullDistance > 0) && (
+          <View style={[styles.pullRefreshContainer, { height: refreshing ? 60 : Math.min(pullDistance, 80) }]}>
+            {refreshing ? (
+              <>
+                <ActivityIndicator size="small" color="#4E44CE" />
+                <Text style={styles.pullRefreshText}>Updating prices...</Text>
+              </>
+            ) : (
+              <>
+                <Ionicons
+                  name="arrow-down"
+                  size={20}
+                  color="#4E44CE"
+                  style={{ transform: [{ rotate: pullDistance > 60 ? '180deg' : '0deg' }] }}
+                />
+                <Text style={styles.pullRefreshText}>
+                  {pullDistance > 60 ? 'Release to refresh' : 'Pull to refresh'}
+                </Text>
+              </>
+            )}
+          </View>
+        )}
+
         {/* Balance Section */}
         <View style={styles.balanceSection}>
           <Text style={styles.balanceLabel}>Total Balance</Text>
@@ -358,6 +414,18 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 20,
+  },
+  pullRefreshContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    overflow: 'hidden',
+  },
+  pullRefreshText: {
+    color: '#4E44CE',
+    fontSize: 14,
+    fontWeight: '500',
   },
 
   // Balance Section
