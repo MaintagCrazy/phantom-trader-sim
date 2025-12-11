@@ -2,25 +2,35 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+const TAB_BAR_HEIGHT = 60;
+
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+  const tabBarHeight = TAB_BAR_HEIGHT + insets.bottom;
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          position: 'absolute',  // CRITICAL: Makes tab bar fixed
+          position: 'absolute',
           bottom: 0,
           left: 0,
           right: 0,
           backgroundColor: '#1C1C1E',
           borderTopColor: '#2C2D30',
           borderTopWidth: 0.5,
-          height: 60 + insets.bottom,
+          height: tabBarHeight,
           paddingTop: 8,
           paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
-          elevation: 0,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+        },
+        sceneContainerStyle: {
+          backgroundColor: '#131314',
         },
         tabBarActiveTintColor: '#4E44CE',
         tabBarInactiveTintColor: '#8E8E93',
