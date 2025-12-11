@@ -81,6 +81,49 @@ export default function RootLayout() {
                 animation: 'slide_from_bottom',
               }}
             />
+            <Stack.Screen
+              name="accounts/index"
+              options={{
+                presentation: 'modal',
+                animation: 'slide_from_bottom',
+              }}
+            />
+            <Stack.Screen
+              name="confirm-trade"
+              options={{
+                presentation: 'modal',
+                animation: 'slide_from_bottom',
+              }}
+            />
+            <Stack.Screen
+              name="trade-result"
+              options={{
+                presentation: 'fullScreenModal',
+                animation: 'fade',
+                gestureEnabled: false,
+              }}
+            />
+            <Stack.Screen
+              name="margin/index"
+              options={{
+                presentation: 'card',
+                animation: 'slide_from_right',
+              }}
+            />
+            <Stack.Screen
+              name="margin/new"
+              options={{
+                presentation: 'modal',
+                animation: 'slide_from_bottom',
+              }}
+            />
+            <Stack.Screen
+              name="margin/position"
+              options={{
+                presentation: 'card',
+                animation: 'slide_from_right',
+              }}
+            />
           </Stack>
         </View>
       </ErrorBoundary>

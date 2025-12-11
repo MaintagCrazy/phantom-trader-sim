@@ -79,7 +79,7 @@ export default function TokenDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { userId } = useUserStore();
-  const { portfolio, buy, sell, isLoading } = usePortfolioStore();
+  const { portfolio } = usePortfolioStore();
   const { coins, selectedCoin, chartDays, fetchCoin, fetchChart, setChartDays } = useCoinsStore();
   const [amount, setAmount] = useState('100');
   const [isBuying, setIsBuying] = useState(true);
@@ -92,27 +92,42 @@ export default function TokenDetailScreen() {
 
   const handleTimeframeChange = (days: string) => { setChartDays(days); if (id) fetchChart(id, days); };
 
-  const handleTrade = async () => {
+  const handleTrade = () => {
     if (!userId || !coin) return;
     const amountNum = parseFloat(amount);
-    if (isNaN(amountNum) || amountNum <= 0) { Alert.alert('Error', 'Please enter a valid amount'); return; }
-    let success = false;
-    if (isBuying) {
-      if (amountNum > cashBalance) {
-        Alert.alert('Insufficient Funds', 'You don\'t have enough cash balance for this trade.');
-        return;
-      }
-      success = await buy(userId, coin.id, coin.symbol.toUpperCase(), coin.name, amountNum);
-      if (success) Alert.alert('Success', `Bought $${amountNum.toLocaleString()} of ${coin.symbol.toUpperCase()}`);
-    } else {
-      const cryptoAmount = amountNum / coin.currentPrice;
-      if (!holding || cryptoAmount > holding.amount) {
-        Alert.alert('Insufficient Holdings', 'You don\'t have enough of this token to sell.');
-        return;
-      }
-      success = await sell(userId, coin.id, cryptoAmount);
-      if (success) Alert.alert('Success', `Sold $${amountNum.toLocaleString()} worth of ${coin.symbol.toUpperCase()}`);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      Alert.alert('Error', 'Please enter a valid amount');
+      return;
     }
+
+    const cryptoAmount = amountNum / coin.currentPrice;
+
+    // Validation
+    if (isBuying && amountNum > cashBalance) {
+      Alert.alert('Insufficient Funds', 'You don\'t have enough cash balance for this trade.');
+      return;
+    }
+    if (!isBuying && (!holding || cryptoAmount > holding.amount)) {
+      Alert.alert('Insufficient Holdings', 'You don\'t have enough of this token to sell.');
+      return;
+    }
+
+    // Navigate to confirmation screen
+    router.push({
+      pathname: '/confirm-trade',
+      params: {
+        coinId: coin.id,
+        coinSymbol: coin.symbol,
+        coinName: coin.name,
+        coinImage: coin.image || '',
+        currentPrice: coin.currentPrice.toString(),
+        usdAmount: amountNum.toString(),
+        cryptoAmount: cryptoAmount.toFixed(8),
+        isBuying: isBuying.toString(),
+        cashBalance: cashBalance.toString(),
+        holdingAmount: holding?.amount.toString() || '0',
+      },
+    });
   };
 
   const formatPrice = (value: number) => {
@@ -142,7 +157,7 @@ export default function TokenDetailScreen() {
   }
 
   const isPositive = coin.priceChange24h >= 0;
-  const isDisabled = !amount || parseFloat(amount) <= 0 || isLoading;
+  const isDisabled = !amount || parseFloat(amount) <= 0;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -308,7 +323,7 @@ export default function TokenDetailScreen() {
               style={styles.tradeButtonGradient}
             >
               <Text style={styles.tradeButtonText}>
-                {isLoading ? 'Processing...' : isBuying ? `Buy ${coin.symbol.toUpperCase()}` : `Sell ${coin.symbol.toUpperCase()}`}
+                {isBuying ? `Buy ${coin.symbol.toUpperCase()}` : `Sell ${coin.symbol.toUpperCase()}`}
               </Text>
             </LinearGradient>
           </TouchableOpacity>

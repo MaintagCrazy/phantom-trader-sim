@@ -8,6 +8,7 @@ import TokenCard from '@/components/TokenCard';
 import { useUserStore } from '@/store/userStore';
 import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore, Coin } from '@/store/coinsStore';
+import { useAccountsStore } from '@/store/accountsStore';
 
 // Real-time simulation settings
 const PRICE_UPDATE_INTERVAL = 1000;
@@ -28,6 +29,7 @@ export default function HomeScreen() {
   const { userId } = useUserStore();
   const { portfolio, fetchPortfolio } = usePortfolioStore();
   const { coins, fetchCoins, isLoading } = useCoinsStore();
+  const { activeAccount, fetchAccounts, migrateToAccounts } = useAccountsStore();
 
   // Initialize live coins from store
   useEffect(() => {
@@ -40,6 +42,9 @@ export default function HomeScreen() {
   useEffect(() => {
     const loadData = async () => {
       if (userId) {
+        // Migrate to accounts system if needed, then fetch data
+        await migrateToAccounts(userId);
+        await fetchAccounts(userId);
         fetchPortfolio(userId);
       }
       await fetchCoins(1, 50);
@@ -88,6 +93,7 @@ export default function HomeScreen() {
     setRefreshing(true);
     try {
       if (userId) {
+        await fetchAccounts(userId);
         await fetchPortfolio(userId);
       }
       await fetchCoins(1, 50);
@@ -97,7 +103,7 @@ export default function HomeScreen() {
       // Small delay so user sees spinner
       setTimeout(() => setRefreshing(false), 500);
     }
-  }, [userId]);
+  }, [userId, fetchAccounts]);
 
   // Calculate totals
   const totalValue = portfolio?.totalValue || 0;
@@ -121,12 +127,20 @@ export default function HomeScreen() {
       {/* ========== FIXED HEADER - Outside ScrollView ========== */}
       <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
+          <TouchableOpacity
+            style={styles.headerLeft}
+            onPress={() => router.push('/accounts')}
+          >
             <View style={styles.accountIcon}>
-              <Text style={styles.accountIconText}>T</Text>
+              <Text style={styles.accountIconText}>
+                {activeAccount?.name?.charAt(0).toUpperCase() || 'T'}
+              </Text>
             </View>
-            <Text style={styles.accountName}>Trade Demo</Text>
-          </View>
+            <Text style={styles.accountName}>
+              {activeAccount?.name || 'Trade Demo'}
+            </Text>
+            <Ionicons name="chevron-down" size={16} color="#8E8E93" style={{ marginLeft: 4 }} />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.settingsButton}>
             <Ionicons name="settings-outline" size={24} color="#8E8E93" />
           </TouchableOpacity>
@@ -182,14 +196,17 @@ export default function HomeScreen() {
             <Text style={styles.actionButtonLabel}>Deposit</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => router.push('/margin')}
+          >
             <LinearGradient
               colors={['#4E44CE', '#6B5DD3']}
               style={styles.actionButtonGradient}
             >
-              <Ionicons name="arrow-up" size={24} color="white" />
+              <Ionicons name="trending-up" size={24} color="white" />
             </LinearGradient>
-            <Text style={styles.actionButtonLabel}>Send</Text>
+            <Text style={styles.actionButtonLabel}>Margin</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

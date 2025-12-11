@@ -15,14 +15,31 @@ model User {
   username     String?       @unique
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-  portfolio    Portfolio?
+  portfolio    Portfolio?    // Legacy: direct portfolio (for backward compatibility)
+  accounts     Account[]     // New: multiple accounts support
   transactions Transaction[]
+}
+
+model Account {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String        @default("Account 1")
+  isActive     Boolean       @default(true)
+  portfolio    Portfolio?    @relation("AccountPortfolio")
+  transactions Transaction[] @relation("AccountTransactions")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([userId])
 }
 
 model Portfolio {
   id          String    @id @default(cuid())
   userId      String    @unique
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId   String?   @unique  // Optional: link to account for multi-account support
+  account     Account?  @relation("AccountPortfolio", fields: [accountId], references: [id], onDelete: Cascade)
   cashBalance Decimal   @default(0) @db.Decimal(18, 2)
   holdings    Holding[]
   createdAt   DateTime  @default(now())
@@ -49,6 +66,8 @@ model Transaction {
   id            String          @id @default(cuid())
   userId        String
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId     String?         // Optional: link to account for multi-account support
+  account       Account?        @relation("AccountTransactions", fields: [accountId], references: [id], onDelete: Cascade)
   type          TransactionType
   // For swaps/trades
   fromCoinId    String?
@@ -65,6 +84,7 @@ model Transaction {
   createdAt     DateTime        @default(now())
 
   @@index([userId])
+  @@index([accountId])
   @@index([createdAt])
 }
 
@@ -73,6 +93,45 @@ enum TransactionType {
   SWAP
   BUY
   SELL
+  MARGIN_OPEN
+  MARGIN_CLOSE
+}
+
+// Margin/Leverage Trading Position
+model MarginPosition {
+  id               String         @id @default(cuid())
+  userId           String
+  accountId        String?
+  coinId           String         // CoinGecko coin ID
+  symbol           String         // e.g., "BTC"
+  name             String         // e.g., "Bitcoin"
+  type             PositionType   // LONG or SHORT
+  leverage         Int            // 2, 5, or 10
+  entryPrice       Decimal        @db.Decimal(18, 8)
+  amount           Decimal        @db.Decimal(18, 8)  // Crypto amount
+  margin           Decimal        @db.Decimal(18, 2)  // USD collateral
+  liquidationPrice Decimal        @db.Decimal(18, 8)
+  status           PositionStatus @default(OPEN)
+  realizedPnl      Decimal?       @db.Decimal(18, 2)  // Final P&L when closed
+  closePrice       Decimal?       @db.Decimal(18, 8)
+  createdAt        DateTime       @default(now())
+  closedAt         DateTime?
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum PositionType {
+  LONG
+  SHORT
+}
+
+enum PositionStatus {
+  OPEN
+  CLOSED
+  LIQUIDATED
 }
 
 // Cache for prices (fallback if Redis fails)

@@ -10,6 +10,8 @@ import { swapRouter } from './routes/swap.js';
 import { pricesRouter } from './routes/prices.js';
 import { coinsRouter } from './routes/coins.js';
 import { transactionsRouter } from './routes/transactions.js';
+import { accountsRouter } from './routes/accounts.js';
+import { marginRouter } from './routes/margin.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
@@ -64,6 +66,8 @@ app.use('/api/deposit', swapRouter);
 app.use('/api/prices', pricesRouter);
 app.use('/api/coins', coinsRouter);
 app.use('/api/transactions', transactionsRouter);
+app.use('/api/accounts', accountsRouter);
+app.use('/api/margin', marginRouter);
 
 // Error handling
 app.use(errorHandler);
