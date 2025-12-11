@@ -21,7 +21,11 @@ COPY . .
 
 # Build the web export (production mode)
 ENV NODE_ENV=production
-RUN npx expo export -p web --no-dev --no-minify
+ENV EXPO_NO_DOTENV=1
+
+# Clear any cached builds and export fresh
+RUN rm -rf dist .expo/web/cache
+RUN npx expo export -p web
 
 # Production stage - serve static files
 FROM node:20-slim
