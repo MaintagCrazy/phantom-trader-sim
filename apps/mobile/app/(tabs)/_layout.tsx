@@ -1,4 +1,5 @@
 import { Tabs } from 'expo-router';
+import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -6,7 +7,15 @@ const TAB_BAR_HEIGHT = 60;
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
-  const tabBarHeight = TAB_BAR_HEIGHT + insets.bottom;
+
+  // Web uses fixed height, mobile adapts to safe area
+  const tabBarHeight = Platform.OS === 'web'
+    ? TAB_BAR_HEIGHT
+    : TAB_BAR_HEIGHT + insets.bottom;
+
+  const tabBarPaddingBottom = Platform.OS === 'web'
+    ? 8
+    : (insets.bottom > 0 ? insets.bottom : 8);
 
   return (
     <Tabs
@@ -22,7 +31,7 @@ export default function TabsLayout() {
           borderTopWidth: 0.5,
           height: tabBarHeight,
           paddingTop: 8,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+          paddingBottom: tabBarPaddingBottom,
           elevation: 8,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -2 },
