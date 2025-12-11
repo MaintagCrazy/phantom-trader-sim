@@ -1,3 +1,8 @@
 const { getDefaultConfig } = require("expo/metro-config");
 
-module.exports = getDefaultConfig(__dirname);
+const config = getDefaultConfig(__dirname);
+
+// Ensure web platform is properly configured
+config.resolver.platforms = ['ios', 'android', 'web'];
+
+module.exports = config;
