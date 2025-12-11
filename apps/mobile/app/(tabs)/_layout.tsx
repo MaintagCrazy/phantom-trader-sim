@@ -4,13 +4,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TAB_BAR_HEIGHT = 60;
+const MIN_BOTTOM_INSET = 34; // iPhone home indicator minimum
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
 
-  // Use actual safe area insets - they work on iOS PWA too
-  const tabBarHeight = TAB_BAR_HEIGHT + insets.bottom;
-  const tabBarPaddingBottom = insets.bottom > 0 ? insets.bottom : 8;
+  // Ensure minimum bottom inset for home indicator (iOS PWA may return 0)
+  const bottomInset = Math.max(insets.bottom, MIN_BOTTOM_INSET);
+  const tabBarHeight = TAB_BAR_HEIGHT + bottomInset;
+  const tabBarPaddingBottom = bottomInset;
 
   return (
     <Tabs

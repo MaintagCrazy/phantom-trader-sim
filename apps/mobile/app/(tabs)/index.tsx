@@ -125,7 +125,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       {/* ========== FIXED HEADER - Outside ScrollView ========== */}
-      <SafeAreaView edges={Platform.OS === 'web' ? [] : ['top']} style={styles.headerSafeArea}>
+      <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.headerLeft}
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 100, // Tab bar height + some padding
+    paddingBottom: 120, // Tab bar + safe area + padding
     flexGrow: 1,
   },
 
