@@ -1,5 +1,5 @@
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, StyleSheet } from 'react-native';
-import { useState, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, StyleSheet, ActivityIndicator } from 'react-native';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,19 +9,47 @@ import { useUserStore } from '@/store/userStore';
 import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore } from '@/store/coinsStore';
 
+// Auto-refresh interval in milliseconds (30 seconds)
+const AUTO_REFRESH_INTERVAL = 30000;
+
 export default function HomeScreen() {
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const { userId } = useUserStore();
   const { portfolio, fetchPortfolio } = usePortfolioStore();
-  const { coins, fetchCoins } = useCoinsStore();
+  const { coins, fetchCoins, isLoading } = useCoinsStore();
 
+  // Initial fetch
   useEffect(() => {
-    if (userId) {
-      fetchPortfolio(userId);
-    }
-    fetchCoins(1, 20);
+    const loadData = async () => {
+      if (userId) {
+        fetchPortfolio(userId);
+      }
+      await fetchCoins(1, 50);
+      setLastUpdated(new Date());
+    };
+    loadData();
+  }, [userId]);
+
+  // Auto-refresh for real-time price updates
+  useEffect(() => {
+    refreshIntervalRef.current = setInterval(async () => {
+      // Silent refresh - don't show loading indicator
+      await fetchCoins(1, 50);
+      if (userId) {
+        await fetchPortfolio(userId);
+      }
+      setLastUpdated(new Date());
+    }, AUTO_REFRESH_INTERVAL);
+
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
   }, [userId]);
 
   const onRefresh = useCallback(async () => {
@@ -29,9 +57,19 @@ export default function HomeScreen() {
     if (userId) {
       await fetchPortfolio(userId);
     }
-    await fetchCoins(1, 20);
+    await fetchCoins(1, 50);
+    setLastUpdated(new Date());
     setRefreshing(false);
   }, [userId]);
+
+  const formatLastUpdated = () => {
+    if (!lastUpdated) return '';
+    const now = new Date();
+    const diff = Math.floor((now.getTime() - lastUpdated.getTime()) / 1000);
+    if (diff < 10) return 'Just now';
+    if (diff < 60) return `${diff}s ago`;
+    return `${Math.floor(diff / 60)}m ago`;
+  };
 
   // Calculate totals
   const totalValue = portfolio?.totalValue || 0;
@@ -190,24 +228,44 @@ export default function HomeScreen() {
         {/* Popular Tokens - ALWAYS SHOW */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Popular Tokens</Text>
+            <View>
+              <Text style={styles.sectionTitle}>Popular Tokens</Text>
+              {lastUpdated && (
+                <Text style={styles.lastUpdated}>Updated {formatLastUpdated()}</Text>
+              )}
+            </View>
             <TouchableOpacity onPress={() => router.push('/(tabs)/search')}>
               <Text style={styles.seeAllLink}>See all</Text>
             </TouchableOpacity>
           </View>
 
-          {coins.slice(0, 5).map((coin) => (
-            <TokenCard
-              key={coin.id}
-              id={coin.id}
-              symbol={coin.symbol}
-              name={coin.name}
-              image={coin.image}
-              currentPrice={coin.currentPrice}
-              priceChange24h={coin.priceChange24h}
-              showHoldings={false}
-            />
-          ))}
+          {isLoading && coins.length === 0 ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#4E44CE" />
+              <Text style={styles.loadingText}>Loading prices...</Text>
+            </View>
+          ) : coins.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="wifi-outline" size={48} color="#636366" />
+              <Text style={styles.emptyText}>Unable to load prices</Text>
+              <TouchableOpacity onPress={onRefresh} style={styles.retryButton}>
+                <Text style={styles.retryButtonText}>Tap to retry</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            coins.slice(0, 10).map((coin) => (
+              <TokenCard
+                key={coin.id}
+                id={coin.id}
+                symbol={coin.symbol}
+                name={coin.name}
+                image={coin.image}
+                currentPrice={coin.currentPrice}
+                priceChange24h={coin.priceChange24h}
+                showHoldings={false}
+              />
+            ))
+          )}
         </View>
 
         {/* Bottom Spacing */}
@@ -330,13 +388,45 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: '600',
-    marginBottom: 12,
+  },
+  lastUpdated: {
+    color: '#636366',
+    fontSize: 12,
+    marginTop: 2,
   },
   seeAllLink: {
     color: '#4E44CE',
     fontSize: 14,
     fontWeight: '500',
-    marginBottom: 12,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    color: '#8E8E93',
+    marginTop: 12,
+    fontSize: 14,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: {
+    color: '#8E8E93',
+    marginTop: 12,
+    fontSize: 14,
+  },
+  retryButton: {
+    marginTop: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#4E44CE',
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: '600',
   },
 
   // Cash Card
