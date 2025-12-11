@@ -27,7 +27,12 @@
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/favicon.png"
+      "favicon": "./public/icon-192.png",
+      "name": "Trade Demo",
+      "shortName": "Trade Demo",
+      "description": "Crypto paper trading simulator",
+      "themeColor": "#131314",
+      "backgroundColor": "#131314"
     },
     "plugins": [
       "expo-router"

@@ -35,8 +35,9 @@ RUN echo "Expo version:" && npx expo --version
 # Export web build
 RUN npx expo export -p web 2>&1 || (echo "Build failed, showing directory:" && ls -la && exit 1)
 
-# Show what was built
-RUN echo "Build complete. Contents of dist:" && ls -la dist/
+# Copy PWA assets to dist folder
+RUN cp -r public/* dist/ 2>/dev/null || true
+RUN echo "PWA assets copied. Contents of dist:" && ls -la dist/
 
 # Production stage - serve static files
 FROM node:20-slim
