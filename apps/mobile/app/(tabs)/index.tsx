@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -125,7 +125,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       {/* ========== FIXED HEADER - Outside ScrollView ========== */}
-      <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
+      <SafeAreaView edges={Platform.OS === 'web' ? [] : ['top']} style={styles.headerSafeArea}>
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.headerLeft}
