@@ -398,19 +398,18 @@ export default function AccountsScreen() {
                   {account.holdingsCount > 0 && ` · ${account.holdingsCount} assets`}
                 </Text>
               </View>
-              {account.isActive ? (
+              {account.isActive && (
                 <View style={styles.activeIndicator}>
                   <Ionicons name="checkmark-circle" size={14} color="#4E44CE" />
                   <Text style={styles.activeText}>Active</Text>
                 </View>
-              ) : (
-                <TouchableOpacity
-                  style={styles.moreBtn}
-                  onPress={() => showAccountOptions(account)}
-                >
-                  <Ionicons name="ellipsis-horizontal" size={20} color="#8E8E93" />
-                </TouchableOpacity>
               )}
+              <TouchableOpacity
+                style={styles.moreBtn}
+                onPress={() => showAccountOptions(account)}
+              >
+                <Ionicons name="ellipsis-horizontal" size={20} color="#8E8E93" />
+              </TouchableOpacity>
             </TouchableOpacity>
           ))
         )}
