@@ -57,6 +57,7 @@ export const useAccountsStore = create<AccountsState>((set, get) => ({
     try {
       await api.post('/api/accounts', { userId, name });
       await get().fetchAccounts(userId);
+      set({ isLoading: false });
       return true;
     } catch (error: any) {
       set({
@@ -72,6 +73,7 @@ export const useAccountsStore = create<AccountsState>((set, get) => ({
     try {
       await api.post('/api/accounts/switch', { userId, accountId });
       await get().fetchAccounts(userId);
+      set({ isLoading: false });
       return true;
     } catch (error: any) {
       set({
@@ -87,6 +89,7 @@ export const useAccountsStore = create<AccountsState>((set, get) => ({
     try {
       await api.put(`/api/accounts/${accountId}`, { userId, name });
       await get().fetchAccounts(userId);
+      set({ isLoading: false });
       return true;
     } catch (error: any) {
       set({
@@ -102,6 +105,7 @@ export const useAccountsStore = create<AccountsState>((set, get) => ({
     try {
       await api.delete(`/api/accounts/${accountId}`, { params: { userId } });
       await get().fetchAccounts(userId);
+      set({ isLoading: false });
       return true;
     } catch (error: any) {
       set({
@@ -117,6 +121,7 @@ export const useAccountsStore = create<AccountsState>((set, get) => ({
     try {
       await api.post('/api/accounts/migrate', { userId });
       await get().fetchAccounts(userId);
+      set({ isLoading: false });
       return true;
     } catch (error: any) {
       set({

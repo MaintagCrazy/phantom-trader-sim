@@ -67,8 +67,8 @@
       }
 
       #root {
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: 100%;
         min-height: 100dvh;
         display: flex;
         flex-direction: column;
@@ -77,6 +77,28 @@
         position: fixed;
         top: 0;
         left: 0;
+        right: 0;
+        bottom: 0;
+      }
+
+      /* Fill iOS safe areas with app background color */
+      html::before,
+      html::after {
+        content: '';
+        position: fixed;
+        left: 0;
+        right: 0;
+        background-color: #131314;
+        z-index: -1;
+        pointer-events: none;
+      }
+      html::before {
+        top: 0;
+        height: env(safe-area-inset-top, 0px);
+      }
+      html::after {
+        bottom: 0;
+        height: env(safe-area-inset-bottom, 0px);
       }
 
       /* Hide scrollbars everywhere */

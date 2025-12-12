@@ -9,11 +9,11 @@ interface SafeAreaProps {
 
 /**
  * Platform-aware SafeAreaView wrapper
- * On web, we don't use safe area insets since the browser handles viewport
+ * Safe areas are needed for iOS PWA to handle notch and home indicator
  */
 export function SafeArea({ children, edges = ['top'], style }: SafeAreaProps) {
-  // On web, don't apply safe area edges (causes visual artifacts)
-  const resolvedEdges = Platform.OS === 'web' ? [] : edges;
+  // Always use edges - iOS PWA needs them for proper safe area handling
+  const resolvedEdges = edges;
 
   return (
     <SafeAreaView edges={resolvedEdges} style={[styles.container, style]}>

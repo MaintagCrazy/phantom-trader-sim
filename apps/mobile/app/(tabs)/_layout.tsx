@@ -23,7 +23,7 @@ export default function TabsLayout() {
           bottom: 0,
           left: 0,
           right: 0,
-          backgroundColor: '#1C1C1E',
+          backgroundColor: '#131314',
           borderTopColor: '#2C2D30',
           borderTopWidth: 0.5,
           height: tabBarHeight,

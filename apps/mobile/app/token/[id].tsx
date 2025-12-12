@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useUserStore } from '@/store/userStore';
 import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore } from '@/store/coinsStore';
+import PriceChart from '@/components/PriceChart';
 
 const TIMEFRAMES = ['1', '7', '30', '90', '365'];
 const TIMEFRAME_LABELS = ['24H', '7D', '30D', '90D', '1Y'];
@@ -80,17 +81,31 @@ export default function TokenDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { userId } = useUserStore();
   const { portfolio } = usePortfolioStore();
-  const { coins, selectedCoin, chartDays, fetchCoin, fetchChart, setChartDays } = useCoinsStore();
+  const { coins, selectedCoin, chartData, chartDays, isLoading, fetchCoin, fetchChart, setChartDays } = useCoinsStore();
   const [amount, setAmount] = useState('100');
   const [isBuying, setIsBuying] = useState(true);
+  const [chartLoading, setChartLoading] = useState(true);
 
-  useEffect(() => { if (id) { fetchCoin(id); fetchChart(id, '7'); } }, [id]);
+  useEffect(() => {
+    if (id) {
+      fetchCoin(id);
+      setChartLoading(true);
+      fetchChart(id, '7').finally(() => setChartLoading(false));
+    }
+  }, [id]);
 
   const coin = selectedCoin || coins.find(c => c.id === id);
   const holding = portfolio?.holdings.find(h => h.coinId === id);
   const cashBalance = portfolio?.cashBalance || 0;
 
-  const handleTimeframeChange = (days: string) => { setChartDays(days); if (id) fetchChart(id, days); };
+  const handleTimeframeChange = async (days: string) => {
+    setChartDays(days);
+    if (id) {
+      setChartLoading(true);
+      await fetchChart(id, days);
+      setChartLoading(false);
+    }
+  };
 
   const handleTrade = () => {
     if (!userId || !coin) return;
@@ -183,10 +198,7 @@ export default function TokenDetailScreen() {
           </View>
         </View>
 
-        <View style={styles.chartPlaceholder}>
-          <Ionicons name="analytics-outline" size={48} color="#636366" />
-          <Text style={styles.chartText}>Chart Coming Soon</Text>
-        </View>
+        <PriceChart data={chartData} height={200} isLoading={chartLoading} />
 
         <View style={styles.timeframeRow}>
           {TIMEFRAMES.map((days, index) => (
