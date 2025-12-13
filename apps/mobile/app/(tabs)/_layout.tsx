@@ -1,18 +1,7 @@
 import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-const TAB_BAR_HEIGHT = 55;
-const MIN_BOTTOM_INSET = 20;
 
 export default function TabsLayout() {
-  const insets = useSafeAreaInsets();
-
-  // Ensure minimum bottom inset for home indicator (iOS PWA may return 0)
-  const bottomInset = Math.max(insets.bottom, MIN_BOTTOM_INSET);
-  const tabBarHeight = TAB_BAR_HEIGHT + bottomInset;
-  const tabBarPaddingBottom = bottomInset;
 
   return (
     <Tabs
@@ -26,10 +15,10 @@ export default function TabsLayout() {
           backgroundColor: '#131314',
           borderTopColor: '#2C2D30',
           borderTopWidth: 0.5,
-          height: tabBarHeight,
-          paddingTop: 6,
-          paddingBottom: tabBarPaddingBottom,
-          paddingHorizontal: 8,
+          height: 83,
+          paddingTop: 8,
+          paddingBottom: 34,
+          paddingHorizontal: 10,
           elevation: 8,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -2 },
@@ -42,10 +31,8 @@ export default function TabsLayout() {
         tabBarActiveTintColor: '#4E44CE',
         tabBarInactiveTintColor: '#8E8E93',
         tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '500',
-          marginTop: 2,
-          marginBottom: 2,
+          fontSize: 11,
+          fontWeight: '600',
         },
       }}
     >
