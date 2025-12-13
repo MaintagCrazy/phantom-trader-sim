@@ -57,7 +57,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <View style={styles.container}>
-          <StatusBar style="light" />
+          <StatusBar style="light" backgroundColor="transparent" translucent={true} />
           <Toast />
           <Stack
             screenOptions={{

@@ -3,8 +3,8 @@ import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const TAB_BAR_HEIGHT = 60;
-const MIN_BOTTOM_INSET = 34; // iPhone home indicator minimum
+const TAB_BAR_HEIGHT = 55;
+const MIN_BOTTOM_INSET = 20;
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
@@ -27,8 +27,9 @@ export default function TabsLayout() {
           borderTopColor: '#2C2D30',
           borderTopWidth: 0.5,
           height: tabBarHeight,
-          paddingTop: 8,
+          paddingTop: 6,
           paddingBottom: tabBarPaddingBottom,
+          paddingHorizontal: 8,
           elevation: 8,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -2 },
@@ -43,7 +44,8 @@ export default function TabsLayout() {
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: '500',
-          marginTop: 4,
+          marginTop: 2,
+          marginBottom: 2,
         },
       }}
     >
