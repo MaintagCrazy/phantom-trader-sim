@@ -81,24 +81,18 @@
         bottom: 0;
       }
 
-      /* Fill iOS safe areas with app background color */
-      html::before,
-      html::after {
+      /* Fill iOS safe area at TOP only with app background color */
+      /* Bottom safe area is handled by the tab bar padding */
+      html::before {
         content: '';
         position: fixed;
         left: 0;
         right: 0;
+        top: 0;
+        height: env(safe-area-inset-top, 0px);
         background-color: #131314;
         z-index: 9999;
         pointer-events: none;
-      }
-      html::before {
-        top: 0;
-        height: env(safe-area-inset-top, 0px);
-      }
-      html::after {
-        bottom: 0;
-        height: env(safe-area-inset-bottom, 0px);
       }
 
       /* Hide scrollbars everywhere */
