@@ -5,9 +5,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
 
-  // Calculate tab bar height: base height + safe area bottom (for iPhone home indicator)
-  const tabBarHeight = 50 + insets.bottom;
-
   return (
     <Tabs
       screenOptions={{
@@ -20,9 +17,9 @@ export default function TabsLayout() {
           backgroundColor: '#131314',
           borderTopColor: '#2C2D30',
           borderTopWidth: 0.5,
-          height: tabBarHeight,
-          paddingTop: 4,
-          paddingBottom: insets.bottom,  // Add safe area padding for home indicator
+          height: 60 + insets.bottom,
+          paddingTop: 8,
+          paddingBottom: Math.max(8, insets.bottom),
           paddingHorizontal: 10,
           elevation: 8,
           shadowColor: '#000',
@@ -32,12 +29,14 @@ export default function TabsLayout() {
         },
         sceneContainerStyle: {
           backgroundColor: '#131314',
+          paddingBottom: 60 + insets.bottom,
         },
         tabBarActiveTintColor: '#4E44CE',
         tabBarInactiveTintColor: '#8E8E93',
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',
+          paddingBottom: 4,
         },
       }}
     >
