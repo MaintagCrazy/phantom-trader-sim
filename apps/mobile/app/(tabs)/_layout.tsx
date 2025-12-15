@@ -1,7 +1,12 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabsLayout() {
+  const insets = useSafeAreaInsets();
+
+  // Calculate tab bar height: base height + safe area bottom (for iPhone home indicator)
+  const tabBarHeight = 50 + insets.bottom;
 
   return (
     <Tabs
@@ -15,9 +20,9 @@ export default function TabsLayout() {
           backgroundColor: '#131314',
           borderTopColor: '#2C2D30',
           borderTopWidth: 0.5,
-          height: 50,
+          height: tabBarHeight,
           paddingTop: 4,
-          paddingBottom: 0,
+          paddingBottom: insets.bottom,  // Add safe area padding for home indicator
           paddingHorizontal: 10,
           elevation: 8,
           shadowColor: '#000',
