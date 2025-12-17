@@ -2,20 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* iOS Safari PWA safe area support */
+/* iOS Safari PWA - DO NOT add safe-area padding here */
+/* Let the tab bar component handle bottom safe area */
 html, body, #root {
   height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
   background-color: #131314;
-  /* Enable safe area insets */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-}
-
-/* Ensure the app respects safe areas */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  body {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
 }

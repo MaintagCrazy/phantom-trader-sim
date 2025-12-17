@@ -3,10 +3,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Platform } from 'react-native';
 
 export default function TabsLayout() {
-  // Fixed height that accounts for iPhone home indicator
-  // On web (iPhone Safari PWA), CSS env(safe-area-inset-bottom) is ~34px
-  // We use a fixed 90px total height: 56px for content + 34px for home indicator
-  const TAB_BAR_HEIGHT = 90;
+  // Tab bar content height (icons + labels)
+  const TAB_CONTENT_HEIGHT = 56;
 
   return (
     <Tabs
@@ -21,23 +19,18 @@ export default function TabsLayout() {
             backgroundColor: '#131314',
             borderTopColor: '#2C2D30',
             borderTopWidth: 0.5,
-            height: TAB_BAR_HEIGHT,
+            height: `calc(${TAB_CONTENT_HEIGHT}px + env(safe-area-inset-bottom, 0px))`,
             paddingTop: 10,
-            paddingBottom: 34,  // Fixed padding for home indicator
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
             paddingHorizontal: 10,
             zIndex: 1000,
           },
           default: {
-            position: 'absolute' as const,
-            bottom: 0,
-            left: 0,
-            right: 0,
             backgroundColor: '#131314',
             borderTopColor: '#2C2D30',
             borderTopWidth: 0.5,
-            height: TAB_BAR_HEIGHT,
+            height: TAB_CONTENT_HEIGHT,
             paddingTop: 10,
-            paddingBottom: 34,
             paddingHorizontal: 10,
             elevation: 8,
             shadowColor: '#000',
@@ -46,10 +39,15 @@ export default function TabsLayout() {
             shadowRadius: 4,
           },
         }),
-        sceneContainerStyle: {
-          backgroundColor: '#131314',
-          paddingBottom: TAB_BAR_HEIGHT,
-        },
+        sceneContainerStyle: Platform.select({
+          web: {
+            backgroundColor: '#131314',
+            paddingBottom: TAB_CONTENT_HEIGHT + 34, // Fixed for web
+          },
+          default: {
+            backgroundColor: '#131314',
+          },
+        }),
         tabBarActiveTintColor: '#4E44CE',
         tabBarInactiveTintColor: '#8E8E93',
         tabBarLabelStyle: {
