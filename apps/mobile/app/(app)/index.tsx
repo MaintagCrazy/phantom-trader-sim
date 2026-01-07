@@ -1,7 +1,7 @@
 // BMO Wallet Style Home Screen
-// Balance + Action Buttons + Transaction List + Bottom Sheet for Assets
+// Balance + Action Buttons + Transaction List + Assets Section
 
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -9,41 +9,41 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  Linking,
   Platform,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import BottomSheet from '@gorhom/bottom-sheet';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BMOHeader from '@/components/BMOHeader';
-import AssetBottomSheet from '@/components/AssetBottomSheet';
 import Theme from '@/styles/theme';
 import { useUserStore } from '@/store/userStore';
 import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore } from '@/store/coinsStore';
 import { useAccountsStore } from '@/store/accountsStore';
-import { getTransactions, Transaction } from '@/services/api';
+import { getTransactions, Transaction, Holding } from '@/services/api';
 
 // Price update intervals
 const API_REFRESH_INTERVAL = 30000;
 
 export default function HomeScreen() {
-  const bottomSheetRef = useRef<BottomSheet>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoadingTx, setIsLoadingTx] = useState(false);
+  const [showAssets, setShowAssets] = useState(true);
 
   const { userId } = useUserStore();
   const { portfolio, fetchPortfolio } = usePortfolioStore();
-  const { fetchCoins } = useCoinsStore();
+  const { coins, fetchCoins } = useCoinsStore();
   const { fetchAccounts, migrateToAccounts } = useAccountsStore();
 
   // Calculate totals
   const totalValue = portfolio?.totalValue || 0;
   const totalPnL = portfolio?.totalPnL || 0;
   const totalPnLPercent = portfolio?.totalPnLPercent || 0;
+  const cashBalance = portfolio?.cashBalance || 0;
+  const holdings = portfolio?.holdings || [];
   const isPositive = totalPnL >= 0;
 
   // Fetch transactions
@@ -155,6 +155,52 @@ export default function HomeScreen() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  // Asset Card Component
+  const AssetCard = ({ holding }: { holding: Holding }) => {
+    const liveCoin = coins.find(c => c.id === holding.coinId);
+    const currentPrice = liveCoin?.currentPrice || holding.currentPrice;
+    const currentValue = holding.amount * currentPrice;
+    const priceChange = liveCoin?.priceChange24h || 0;
+    const isUp = priceChange >= 0;
+
+    return (
+      <TouchableOpacity
+        style={styles.assetCard}
+        onPress={() => router.push(`/token/${holding.coinId}`)}
+        activeOpacity={0.7}
+      >
+        {holding.image ? (
+          <Image source={{ uri: holding.image }} style={styles.assetIcon} />
+        ) : (
+          <View style={[styles.assetIcon, styles.assetIconPlaceholder]}>
+            <Text style={styles.assetIconText}>
+              {holding.symbol?.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+        )}
+        <View style={styles.assetInfo}>
+          <Text style={styles.assetName}>{holding.name || holding.coinId}</Text>
+          <Text style={styles.assetAmount}>
+            {holding.amount.toFixed(4)} {holding.symbol?.toUpperCase()}
+          </Text>
+        </View>
+        <View style={styles.assetRight}>
+          <Text style={styles.assetValue}>{formatCurrency(currentValue)}</Text>
+          <View style={styles.changeRow}>
+            <Ionicons
+              name={isUp ? 'arrow-up' : 'arrow-down'}
+              size={12}
+              color={isUp ? Theme.colors.success : Theme.colors.accent}
+            />
+            <Text style={[styles.changeText, { color: isUp ? Theme.colors.success : Theme.colors.accent }]}>
+              {isUp ? '+' : ''}{priceChange.toFixed(2)}%
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   const renderTransaction = ({ item: tx }: { item: Transaction }) => (
     <TouchableOpacity style={styles.txCard} activeOpacity={0.7}>
       <View style={[styles.txIcon, { backgroundColor: `${getTransactionColor(tx.type)}20` }]}>
@@ -248,6 +294,52 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Assets Section */}
+      <TouchableOpacity
+        style={styles.sectionHeader}
+        onPress={() => setShowAssets(!showAssets)}
+      >
+        <Text style={styles.sectionTitle}>Assets</Text>
+        <Ionicons
+          name={showAssets ? 'chevron-up' : 'chevron-down'}
+          size={20}
+          color={Theme.colors.lightGrey}
+        />
+      </TouchableOpacity>
+
+      {showAssets && (
+        <View style={styles.assetsContainer}>
+          {/* Cash Balance */}
+          {cashBalance > 0 && (
+            <View style={styles.assetCard}>
+              <LinearGradient
+                colors={[Theme.colors.success, '#1B8B4A']}
+                style={[styles.assetIcon, styles.cashIcon]}
+              >
+                <Text style={styles.cashIconText}>$</Text>
+              </LinearGradient>
+              <View style={styles.assetInfo}>
+                <Text style={styles.assetName}>USD Cash</Text>
+                <Text style={styles.assetAmount}>Available to trade</Text>
+              </View>
+              <Text style={styles.assetValue}>{formatCurrency(cashBalance)}</Text>
+            </View>
+          )}
+
+          {/* Holdings */}
+          {holdings.map((holding) => (
+            <AssetCard key={holding.coinId} holding={holding} />
+          ))}
+
+          {holdings.length === 0 && cashBalance === 0 && (
+            <View style={styles.emptyAssets}>
+              <Ionicons name="wallet-outline" size={32} color={Theme.colors.grey} />
+              <Text style={styles.emptyAssetsText}>No assets yet</Text>
+            </View>
+          )}
+        </View>
+      )}
+
       {/* Transaction History Header */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Recent Activity</Text>
@@ -267,11 +359,11 @@ export default function HomeScreen() {
   );
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <LinearGradient
-        colors={Theme.colors.primaryLinearGradient}
-        style={styles.gradientBackground}
-      >
+    <LinearGradient
+      colors={Theme.colors.primaryLinearGradient}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
         <BMOHeader />
 
@@ -293,11 +385,8 @@ export default function HomeScreen() {
             />
           }
         />
-
-        {/* Asset Bottom Sheet */}
-        <AssetBottomSheet ref={bottomSheetRef} />
-      </LinearGradient>
-    </GestureHandlerRootView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
@@ -305,12 +394,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  gradientBackground: {
+  safeArea: {
     flex: 1,
   },
   listContent: {
     paddingHorizontal: Theme.spacing.medium,
-    paddingBottom: 200, // Space for bottom sheet
+    paddingBottom: Theme.spacing.huge,
   },
 
   // Balance Section
@@ -381,6 +470,84 @@ const styles = StyleSheet.create({
     color: Theme.colors.primary,
     fontSize: Theme.fonts.sizes.normal,
     fontWeight: '500',
+  },
+
+  // Assets Section
+  assetsContainer: {
+    backgroundColor: `${Theme.colors.dark}80`,
+    borderRadius: Theme.borderRadius.large,
+    overflow: 'hidden',
+    marginBottom: Theme.spacing.medium,
+  },
+  assetCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Theme.spacing.medium,
+    borderBottomWidth: 1,
+    borderBottomColor: Theme.colors.darkLight,
+  },
+  assetIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    marginRight: Theme.spacing.medium,
+  },
+  assetIconPlaceholder: {
+    backgroundColor: Theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  assetIconText: {
+    color: Theme.colors.white,
+    fontSize: Theme.fonts.sizes.header,
+    fontWeight: '700',
+  },
+  cashIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cashIconText: {
+    color: Theme.colors.white,
+    fontSize: Theme.fonts.sizes.title,
+    fontWeight: '700',
+  },
+  assetInfo: {
+    flex: 1,
+  },
+  assetName: {
+    color: Theme.colors.white,
+    fontSize: Theme.fonts.sizes.large,
+    fontWeight: '600',
+  },
+  assetAmount: {
+    color: Theme.colors.lightGrey,
+    fontSize: Theme.fonts.sizes.normal,
+    marginTop: 2,
+  },
+  assetRight: {
+    alignItems: 'flex-end',
+  },
+  assetValue: {
+    color: Theme.colors.white,
+    fontSize: Theme.fonts.sizes.large,
+    fontWeight: '600',
+  },
+  changeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  changeText: {
+    fontSize: Theme.fonts.sizes.small,
+    marginLeft: 2,
+  },
+  emptyAssets: {
+    alignItems: 'center',
+    paddingVertical: Theme.spacing.large,
+  },
+  emptyAssetsText: {
+    color: Theme.colors.lightGrey,
+    marginTop: Theme.spacing.small,
   },
 
   // Transaction Cards
