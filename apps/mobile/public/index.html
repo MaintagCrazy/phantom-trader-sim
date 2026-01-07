@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
 
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#131314" />
-    <meta name="background-color" content="#131314" />
-    <meta name="msapplication-TileColor" content="#131314" />
+    <meta name="theme-color" content="#1A1A1A" />
+    <meta name="background-color" content="#1A1A1A" />
+    <meta name="msapplication-TileColor" content="#1A1A1A" />
 
     <!-- iOS PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -27,7 +27,7 @@
 
     <title>Trade Demo</title>
 
-    <!-- Expo/React Native Web Styles -->
+    <!-- BMO Wallet Style - Clean PWA Layout -->
     <style>
       * {
         box-sizing: border-box;
@@ -36,14 +36,21 @@
         -ms-overflow-style: none !important;
       }
 
+      /* Hide scrollbars */
+      ::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+      }
+
       html {
         width: 100%;
         height: 100%;
-        height: 100dvh; /* Dynamic viewport height for mobile */
+        height: 100dvh;
         margin: 0;
         padding: 0;
-        overflow: hidden !important;
-        background-color: #131314;
+        overflow: hidden;
+        background-color: #1A1A1A;
         overscroll-behavior: none;
         -webkit-overflow-scrolling: touch;
       }
@@ -54,8 +61,8 @@
         height: 100dvh;
         margin: 0;
         padding: 0;
-        overflow: hidden !important;
-        background-color: #131314;
+        overflow: hidden;
+        background-color: #1A1A1A;
         overscroll-behavior: none;
         -webkit-text-size-adjust: 100%;
         touch-action: pan-x pan-y;
@@ -72,8 +79,8 @@
         min-height: 100dvh;
         display: flex;
         flex-direction: column;
-        overflow: hidden !important;
-        background-color: #131314;
+        overflow: hidden;
+        background-color: #1A1A1A;
         position: fixed;
         top: 0;
         left: 0;
@@ -81,31 +88,19 @@
         bottom: 0;
       }
 
-      /* Fill iOS safe area at TOP only with app background color */
-      /* Bottom safe area is handled by the tab bar padding */
-      html::before {
-        content: '';
-        position: fixed;
-        left: 0;
-        right: 0;
-        top: 0;
-        height: env(safe-area-inset-top, 0px);
-        background-color: #131314;
-        z-index: 9999;
-        pointer-events: none;
-      }
-
-      /* Hide scrollbars everywhere */
-      ::-webkit-scrollbar {
-        display: none !important;
-        width: 0 !important;
-        height: 0 !important;
-      }
-      ::-webkit-scrollbar-track {
-        display: none !important;
-      }
-      ::-webkit-scrollbar-thumb {
-        display: none !important;
+      /* iOS Safe Area - Top notch fill */
+      @supports (padding: env(safe-area-inset-top)) {
+        html::before {
+          content: '';
+          position: fixed;
+          left: 0;
+          right: 0;
+          top: 0;
+          height: env(safe-area-inset-top, 0px);
+          background: linear-gradient(180deg, #8878F4 0%, #6155AC 100%);
+          z-index: 9998;
+          pointer-events: none;
+        }
       }
     </style>
   </head>

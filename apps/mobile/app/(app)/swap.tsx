@@ -1,50 +1,16 @@
+// BMO Wallet Style Swap Screen
+// Modal presentation with gradient background
+
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, StyleSheet, Modal, FlatList, Image } from 'react-native';
 import { useState, useEffect } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Header from '@/components/Header';
-import ActionButton from '@/components/ActionButton';
+import { LinearGradient } from 'expo-linear-gradient';
+import Theme from '@/styles/theme';
 import { useUserStore } from '@/store/userStore';
 import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore, Coin } from '@/store/coinsStore';
 import { previewSwap } from '@/services/api';
-import colors from '@/constants/colors';
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: colors.darkBg },
-  scrollView: { flex: 1, paddingHorizontal: 16 },
-  section: { marginTop: 24 },
-  sectionLabel: { color: colors.gray, fontSize: 14, marginBottom: 8 },
-  card: { backgroundColor: colors.cardBg, borderRadius: 16, padding: 16 },
-  cardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  tokenSelect: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.shark, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 },
-  tokenText: { color: colors.white, fontWeight: '600', marginRight: 8 },
-  maxButton: { color: colors.purpleHeart, fontSize: 14 },
-  amountInput: { color: colors.white, fontSize: 28, fontWeight: '700' },
-  balanceText: { color: colors.gray, fontSize: 14, marginTop: 8 },
-  swapButtonContainer: { alignItems: 'center', marginVertical: 16 },
-  swapButton: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.purpleHeart, alignItems: 'center', justifyContent: 'center' },
-  receiveAmount: { color: colors.white, fontSize: 28, fontWeight: '700' },
-  usdValue: { color: colors.gray, fontSize: 14, marginTop: 8 },
-  rateCard: { marginTop: 16, padding: 16, backgroundColor: colors.cardBg, borderRadius: 16 },
-  rateRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  rateLabel: { color: colors.gray },
-  rateValue: { color: colors.white },
-  actionContainer: { marginTop: 32, marginBottom: 24 },
-  // Modal styles
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
-  pickerContainer: { backgroundColor: colors.cardBg, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 20, paddingBottom: 40, maxHeight: '70%' },
-  pickerHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16 },
-  pickerTitle: { color: colors.white, fontSize: 18, fontWeight: '600' },
-  closeButton: { padding: 4 },
-  coinOption: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.shark },
-  coinImage: { width: 40, height: 40, borderRadius: 20, marginRight: 12 },
-  coinInfo: { flex: 1 },
-  coinSymbol: { color: colors.white, fontSize: 16, fontWeight: '600' },
-  coinName: { color: colors.gray, fontSize: 14, marginTop: 2 },
-  coinPrice: { color: colors.white, fontSize: 14, textAlign: 'right' },
-  selectedCoin: { backgroundColor: 'rgba(78, 68, 206, 0.2)' },
-});
 
 export default function SwapScreen() {
   const { userId } = useUserStore();
@@ -116,10 +82,10 @@ export default function SwapScreen() {
     if (success) {
       Alert.alert('Success', `Swapped ${fromAmount} ${getFromCoinInfo().symbol.toUpperCase()} for ${toAmount} ${toCoinInfo.symbol.toUpperCase()}`);
       setFromAmount(''); setToAmount('');
+      router.back();
     }
   };
 
-  // Get available coins for "from" picker (only holdings)
   const getFromCoins = (): Coin[] => {
     if (!portfolio?.holdings) return [];
     return portfolio.holdings.map(holding => {
@@ -128,7 +94,6 @@ export default function SwapScreen() {
     }).filter(Boolean) as Coin[];
   };
 
-  // Get available coins for "to" picker (all coins except current fromCoin)
   const getToCoins = (): Coin[] => {
     return coins.filter(c => c.id !== fromCoin);
   };
@@ -172,39 +137,57 @@ export default function SwapScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <Header title="Swap" />
+    <LinearGradient colors={Theme.colors.primaryLinearGradient} style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
+          <Ionicons name="close" size={28} color={Theme.colors.primary} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Swap</Text>
+        <View style={styles.placeholder} />
+      </View>
+
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* You Pay Section */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>You Pay</Text>
           <View style={styles.card}>
             <View style={styles.cardRow}>
               <TouchableOpacity style={styles.tokenSelect} onPress={() => setShowFromPicker(true)}>
                 <Text style={styles.tokenText}>{fromInfo.symbol.toUpperCase()}</Text>
-                <Ionicons name="chevron-down" size={16} color={colors.gray} />
+                <Ionicons name="chevron-down" size={16} color={Theme.colors.lightGrey} />
               </TouchableOpacity>
               <TouchableOpacity onPress={handleMax}>
                 <Text style={styles.maxButton}>MAX</Text>
               </TouchableOpacity>
             </View>
-            <TextInput style={styles.amountInput} placeholder="0" placeholderTextColor={colors.gray} keyboardType="decimal-pad" value={fromAmount} onChangeText={setFromAmount} />
+            <TextInput
+              style={styles.amountInput}
+              placeholder="0"
+              placeholderTextColor={Theme.colors.grey}
+              keyboardType="decimal-pad"
+              value={fromAmount}
+              onChangeText={setFromAmount}
+            />
             <Text style={styles.balanceText}>Balance: {fromInfo.balance.toFixed(4)} {fromInfo.symbol.toUpperCase()}</Text>
           </View>
         </View>
 
+        {/* Swap Direction Button */}
         <View style={styles.swapButtonContainer}>
-          <TouchableOpacity onPress={handleSwapDirection} style={styles.swapButton}>
-            <Ionicons name="swap-vertical" size={24} color={colors.white} />
+          <TouchableOpacity onPress={handleSwapDirection} style={styles.swapDirectionButton}>
+            <Ionicons name="swap-vertical" size={24} color={Theme.colors.white} />
           </TouchableOpacity>
         </View>
 
-        <View>
+        {/* You Receive Section */}
+        <View style={styles.section}>
           <Text style={styles.sectionLabel}>You Receive</Text>
           <View style={styles.card}>
             <View style={styles.cardRow}>
               <TouchableOpacity style={styles.tokenSelect} onPress={() => setShowToPicker(true)}>
                 <Text style={styles.tokenText}>{toInfo.symbol.toUpperCase()}</Text>
-                <Ionicons name="chevron-down" size={16} color={colors.gray} />
+                <Ionicons name="chevron-down" size={16} color={Theme.colors.lightGrey} />
               </TouchableOpacity>
             </View>
             <Text style={styles.receiveAmount}>{toAmount || '0'}</Text>
@@ -212,18 +195,36 @@ export default function SwapScreen() {
           </View>
         </View>
 
+        {/* Exchange Rate */}
         {preview?.exchangeRate && (
           <View style={styles.rateCard}>
             <View style={styles.rateRow}>
               <Text style={styles.rateLabel}>Exchange Rate</Text>
-              <Text style={styles.rateValue}>1 {fromInfo.symbol.toUpperCase()} = {preview.exchangeRate.toFixed(6)} {toInfo.symbol.toUpperCase()}</Text>
+              <Text style={styles.rateValue}>
+                1 {fromInfo.symbol.toUpperCase()} = {preview.exchangeRate.toFixed(6)} {toInfo.symbol.toUpperCase()}
+              </Text>
             </View>
           </View>
         )}
 
-        <View style={styles.actionContainer}>
-          <ActionButton title={isLoading ? 'Swapping...' : 'Review Swap'} onPress={handleSwap} fullWidth size="large" disabled={!fromAmount || !toAmount || isLoading} loading={isLoading} />
-        </View>
+        {/* Swap Button */}
+        <TouchableOpacity
+          style={[styles.actionButton, (!fromAmount || !toAmount || isLoading) && styles.actionButtonDisabled]}
+          onPress={handleSwap}
+          disabled={!fromAmount || !toAmount || isLoading}
+        >
+          <LinearGradient
+            colors={(!fromAmount || !toAmount || isLoading)
+              ? [Theme.colors.grey, Theme.colors.grey]
+              : [Theme.colors.primary, Theme.colors.primaryDark]
+            }
+            style={styles.actionButtonGradient}
+          >
+            <Text style={styles.actionButtonText}>
+              {isLoading ? 'Swapping...' : 'Review Swap'}
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
       </ScrollView>
 
       {/* From Coin Picker Modal */}
@@ -232,8 +233,8 @@ export default function SwapScreen() {
           <View style={styles.pickerContainer}>
             <View style={styles.pickerHeader}>
               <Text style={styles.pickerTitle}>Select Token to Swap</Text>
-              <TouchableOpacity style={styles.closeButton} onPress={() => setShowFromPicker(false)}>
-                <Ionicons name="close" size={24} color={colors.white} />
+              <TouchableOpacity onPress={() => setShowFromPicker(false)}>
+                <Ionicons name="close" size={24} color={Theme.colors.white} />
               </TouchableOpacity>
             </View>
             <FlatList
@@ -252,8 +253,8 @@ export default function SwapScreen() {
           <View style={styles.pickerContainer}>
             <View style={styles.pickerHeader}>
               <Text style={styles.pickerTitle}>Select Token to Receive</Text>
-              <TouchableOpacity style={styles.closeButton} onPress={() => setShowToPicker(false)}>
-                <Ionicons name="close" size={24} color={colors.white} />
+              <TouchableOpacity onPress={() => setShowToPicker(false)}>
+                <Ionicons name="close" size={24} color={Theme.colors.white} />
               </TouchableOpacity>
             </View>
             <FlatList
@@ -265,6 +266,197 @@ export default function SwapScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </LinearGradient>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Theme.spacing.medium,
+    paddingTop: 60,
+    paddingBottom: Theme.spacing.medium,
+  },
+  closeButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    color: Theme.colors.white,
+    fontSize: Theme.fonts.sizes.header,
+    fontWeight: '700',
+  },
+  placeholder: {
+    width: 44,
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: Theme.spacing.medium,
+  },
+  section: {
+    marginBottom: Theme.spacing.small,
+  },
+  sectionLabel: {
+    color: Theme.colors.lightGrey,
+    fontSize: Theme.fonts.sizes.normal,
+    marginBottom: Theme.spacing.small,
+  },
+  card: {
+    backgroundColor: `${Theme.colors.dark}90`,
+    borderRadius: Theme.borderRadius.large,
+    padding: Theme.spacing.medium,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Theme.spacing.medium,
+  },
+  tokenSelect: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Theme.colors.darkLight,
+    borderRadius: Theme.borderRadius.default,
+    paddingHorizontal: Theme.spacing.medium,
+    paddingVertical: Theme.spacing.small,
+  },
+  tokenText: {
+    color: Theme.colors.white,
+    fontWeight: '600',
+    marginRight: Theme.spacing.small,
+  },
+  maxButton: {
+    color: Theme.colors.primary,
+    fontWeight: '600',
+  },
+  amountInput: {
+    color: Theme.colors.white,
+    fontSize: 32,
+    fontWeight: '700',
+  },
+  balanceText: {
+    color: Theme.colors.lightGrey,
+    fontSize: Theme.fonts.sizes.normal,
+    marginTop: Theme.spacing.small,
+  },
+  swapButtonContainer: {
+    alignItems: 'center',
+    marginVertical: Theme.spacing.small,
+  },
+  swapDirectionButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  receiveAmount: {
+    color: Theme.colors.white,
+    fontSize: 32,
+    fontWeight: '700',
+  },
+  usdValue: {
+    color: Theme.colors.lightGrey,
+    fontSize: Theme.fonts.sizes.normal,
+    marginTop: Theme.spacing.small,
+  },
+  rateCard: {
+    marginTop: Theme.spacing.medium,
+    padding: Theme.spacing.medium,
+    backgroundColor: `${Theme.colors.dark}90`,
+    borderRadius: Theme.borderRadius.large,
+  },
+  rateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  rateLabel: {
+    color: Theme.colors.lightGrey,
+  },
+  rateValue: {
+    color: Theme.colors.white,
+  },
+  actionButton: {
+    marginTop: Theme.spacing.large,
+    marginBottom: Theme.spacing.huge,
+  },
+  actionButtonDisabled: {
+    opacity: 0.5,
+  },
+  actionButtonGradient: {
+    height: 56,
+    borderRadius: Theme.borderRadius.large,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionButtonText: {
+    color: Theme.colors.white,
+    fontSize: Theme.fonts.sizes.large,
+    fontWeight: '700',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'flex-end',
+  },
+  pickerContainer: {
+    backgroundColor: Theme.colors.dark,
+    borderTopLeftRadius: Theme.borderRadius.extraLarge,
+    borderTopRightRadius: Theme.borderRadius.extraLarge,
+    paddingTop: Theme.spacing.large,
+    paddingBottom: Theme.spacing.huge,
+    maxHeight: '70%',
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Theme.spacing.large,
+    marginBottom: Theme.spacing.medium,
+  },
+  pickerTitle: {
+    color: Theme.colors.white,
+    fontSize: Theme.fonts.sizes.header,
+    fontWeight: '600',
+  },
+  coinOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Theme.spacing.large,
+    paddingVertical: Theme.spacing.medium,
+    borderBottomWidth: 1,
+    borderBottomColor: Theme.colors.darkLight,
+  },
+  coinImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    marginRight: Theme.spacing.medium,
+  },
+  coinInfo: {
+    flex: 1,
+  },
+  coinSymbol: {
+    color: Theme.colors.white,
+    fontSize: Theme.fonts.sizes.large,
+    fontWeight: '600',
+  },
+  coinName: {
+    color: Theme.colors.lightGrey,
+    fontSize: Theme.fonts.sizes.normal,
+    marginTop: 2,
+  },
+  coinPrice: {
+    color: Theme.colors.white,
+    fontSize: Theme.fonts.sizes.normal,
+    textAlign: 'right',
+  },
+  selectedCoin: {
+    backgroundColor: `${Theme.colors.primary}20`,
+  },
+});
