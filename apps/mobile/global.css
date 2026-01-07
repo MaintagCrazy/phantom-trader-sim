@@ -3,7 +3,22 @@
 @tailwind utilities;
 
 /* BMO Wallet Style - Global Styles */
-html, body, #root {
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hide scrollbars but allow scrolling */
+::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+html {
   height: 100%;
   height: 100dvh;
   width: 100%;
@@ -11,16 +26,53 @@ html, body, #root {
   padding: 0;
   background-color: #1A1A1A;
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
-/* Smooth scrolling for iOS */
-* {
-  -webkit-overflow-scrolling: touch;
+body {
+  height: 100%;
+  height: 100dvh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #1A1A1A;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  touch-action: pan-x pan-y;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
-/* Hide scrollbars but allow scrolling */
-::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
+#root {
+  height: 100%;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: #1A1A1A;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* iOS Safe Area - Top notch fill with BMO gradient */
+@supports (padding: env(safe-area-inset-top)) {
+  html::before {
+    content: '';
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: env(safe-area-inset-top, 0px);
+    background: linear-gradient(180deg, #8878F4 0%, #6155AC 100%);
+    z-index: 9998;
+    pointer-events: none;
+  }
 }
