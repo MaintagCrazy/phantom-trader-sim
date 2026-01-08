@@ -75,17 +75,15 @@ body {
   background-color: transparent !important;
 }
 
-/* iOS Safe Area - Top notch fill with BMO gradient */
-@supports (padding: env(safe-area-inset-top)) {
-  html::before {
-    content: '';
-    position: fixed;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: env(safe-area-inset-top, 0px);
-    background: linear-gradient(180deg, #8878F4 0%, #6155AC 100%);
-    z-index: 9998;
-    pointer-events: none;
-  }
+/* Fill top area with dark color to match gradient start */
+html::before {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: -10px;
+  height: calc(max(env(safe-area-inset-top, 0px), 30px) + 10px);
+  background: #8878F4;
+  z-index: 9999;
+  pointer-events: none;
 }
