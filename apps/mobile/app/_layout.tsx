@@ -4,9 +4,10 @@
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useUserStore } from '@/store/userStore';
 import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore } from '@/store/coinsStore';
@@ -55,13 +56,16 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaProvider>
         <ErrorBoundary>
-          <View style={styles.container}>
+          <LinearGradient
+            colors={Theme.colors.primaryLinearGradient}
+            style={styles.container}
+          >
             <StatusBar style="light" backgroundColor="transparent" translucent={true} />
             <Toast />
             <Stack
               screenOptions={{
                 headerShown: false,
-                contentStyle: { backgroundColor: Theme.colors.dark },
+                contentStyle: { backgroundColor: 'transparent' },
                 animation: 'slide_from_right',
               }}
             >
@@ -127,7 +131,7 @@ export default function RootLayout() {
                 }}
               />
             </Stack>
-          </View>
+          </LinearGradient>
         </ErrorBoundary>
       </SafeAreaProvider>
     </GestureHandlerRootView>
@@ -137,6 +141,5 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.dark,
   },
 });
