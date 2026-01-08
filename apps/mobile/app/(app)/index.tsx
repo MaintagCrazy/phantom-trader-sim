@@ -13,8 +13,8 @@ import {
   Image,
 } from 'react-native';
 import { router } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BMOHeader from '@/components/BMOHeader';
 import Theme from '@/styles/theme';
@@ -359,43 +359,36 @@ export default function HomeScreen() {
   );
 
   return (
-    <LinearGradient
-      colors={Theme.colors.primaryLinearGradient}
-      style={styles.container}
-    >
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Header */}
-        <BMOHeader />
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Header */}
+      <BMOHeader />
 
-        {/* Main Content */}
-        <FlatList
-          data={transactions.slice(0, 5)}
-          keyExtractor={(item) => item.id}
-          renderItem={renderTransaction}
-          ListHeaderComponent={ListHeaderComponent}
-          ListEmptyComponent={isLoadingTx ? null : ListEmptyComponent}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={Theme.colors.primary}
-              colors={[Theme.colors.primary]}
-            />
-          }
-        />
-      </SafeAreaView>
-    </LinearGradient>
+      {/* Main Content */}
+      <FlatList
+        data={transactions.slice(0, 5)}
+        keyExtractor={(item) => item.id}
+        renderItem={renderTransaction}
+        ListHeaderComponent={ListHeaderComponent}
+        ListEmptyComponent={isLoadingTx ? null : ListEmptyComponent}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Theme.colors.white}
+            colors={[Theme.colors.white]}
+          />
+        }
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  safeArea: {
-    flex: 1,
+    backgroundColor: 'transparent',
   },
   listContent: {
     paddingHorizontal: Theme.spacing.medium,

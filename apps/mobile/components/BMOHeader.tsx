@@ -2,7 +2,7 @@
 // Settings (left) | Account Name (center) | QR Code (right)
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAccountsStore } from '@/store/accountsStore';
@@ -101,8 +101,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Theme.spacing.medium,
-    paddingTop: Platform.OS === 'android' ? 15 : 60,
-    paddingBottom: Theme.spacing.medium,
+    paddingTop: Theme.spacing.small,
+    paddingBottom: Theme.spacing.small,
   },
   leftContainer: {
     width: 50,

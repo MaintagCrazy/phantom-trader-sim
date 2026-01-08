@@ -1,9 +1,10 @@
 // BMO Wallet Style App Layout
-// Main app section with Stack navigation
+// Main app section with Stack navigation wrapped in gradient
 
 import { Stack, router } from 'expo-router';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import Theme from '@/styles/theme';
 
 export default function AppLayout() {
@@ -26,7 +27,10 @@ export default function AppLayout() {
   );
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={Theme.colors.primaryLinearGradient}
+      style={styles.container}
+    >
       <Stack
         screenOptions={{
           headerShown: false,
@@ -40,6 +44,64 @@ export default function AppLayout() {
           name="index"
           options={{
             headerShown: false,
+          }}
+        />
+
+        {/* Token Detail Screen */}
+        <Stack.Screen
+          name="token/[id]"
+          options={{
+            headerShown: true,
+            headerTransparent: true,
+            headerTitle: '',
+            headerLeft: () => <BackButton />,
+          }}
+        />
+
+        {/* Camera/QR Scanner */}
+        <Stack.Screen
+          name="camera/index"
+          options={{
+            headerShown: false,
+            presentation: 'fullScreenModal',
+          }}
+        />
+
+        {/* Token Send */}
+        <Stack.Screen
+          name="token/send/[send]"
+          options={{
+            headerShown: true,
+            headerTransparent: true,
+            headerTitle: 'Send',
+            headerTitleStyle: { color: Theme.colors.white },
+            headerLeft: () => <BackButton />,
+            presentation: 'modal',
+          }}
+        />
+
+        {/* Send Confirmation */}
+        <Stack.Screen
+          name="token/send/send-confirmation"
+          options={{
+            headerShown: true,
+            headerTransparent: true,
+            headerTitle: 'Confirm',
+            headerTitleStyle: { color: Theme.colors.white },
+            headerLeft: () => <BackButton />,
+            presentation: 'modal',
+          }}
+        />
+
+        {/* Token Receive */}
+        <Stack.Screen
+          name="token/receive/[receive]"
+          options={{
+            headerShown: true,
+            headerTransparent: true,
+            headerTitle: '',
+            headerLeft: () => <BackButton />,
+            presentation: 'modal',
           }}
         />
 
@@ -101,14 +163,13 @@ export default function AppLayout() {
           }}
         />
       </Stack>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.dark,
   },
   backButton: {
     padding: 10,
