@@ -44,16 +44,8 @@ export default function ReceiveOptionsScreen() {
   };
 
   const handleSelectCoin = (coin: Coin) => {
-    const address = getAddress(coin.id);
-    Alert.alert(
-      `Receive ${coin.symbol.toUpperCase()}`,
-      `Your ${coin.name} address:\n\n${address.slice(0, 20)}...${address.slice(-10)}`,
-      [
-        { text: 'Copy', onPress: () => handleCopyAddress(coin.id, coin.symbol) },
-        { text: 'Share', onPress: () => handleShare(coin.id, coin.symbol) },
-        { text: 'Close', style: 'cancel' },
-      ]
-    );
+    // Navigate to the receive screen with QR code
+    router.push(`/token/receive/${coin.id}`);
   };
 
   const renderCoin = ({ item: coin }: { item: Coin }) => (

@@ -25,8 +25,8 @@ export default function SendOptionsScreen() {
   };
 
   const handleSelectAsset = (coinId: string) => {
-    // In a real app, this would navigate to a send form
-    router.push(`/token/${coinId}`);
+    // Navigate to the send form
+    router.push(`/token/send/${coinId}`);
   };
 
   const renderAsset = ({ item }: { item: typeof holdings[0] }) => {
