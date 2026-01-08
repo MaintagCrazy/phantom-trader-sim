@@ -158,7 +158,7 @@ const AssetBottomSheet = forwardRef<BottomSheet, AssetBottomSheetProps>(
       >
         <BottomSheetFlatList
           data={holdings}
-          keyExtractor={(item) => item.coinId}
+          keyExtractor={(item: Holding) => item.coinId}
           renderItem={renderAssetItem}
           ListHeaderComponent={ListHeaderComponent}
           ListEmptyComponent={ListEmptyComponent}
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: Theme.spacing.medium,
     borderBottomWidth: 1,
-    borderBottomColor: Theme.colors.darkLight,
+    borderBottomColor: Theme.colors.lightDark,
   },
   cashCard: {
     flexDirection: 'row',
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: Theme.spacing.medium,
     borderBottomWidth: 1,
-    borderBottomColor: Theme.colors.darkLight,
+    borderBottomColor: Theme.colors.lightDark,
   },
   assetLeft: {
     flexDirection: 'row',

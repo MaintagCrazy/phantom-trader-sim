@@ -122,7 +122,7 @@ export default function HomeScreen() {
 
   const getTransactionColor = (type: Transaction['type']) => {
     switch (type) {
-      case 'DEPOSIT': return Theme.colors.success;
+      case 'DEPOSIT': return '#30D158'; // success green
       case 'BUY': return Theme.colors.primary;
       case 'SELL': return Theme.colors.solana;
       case 'SWAP': return Theme.colors.ethereum;
@@ -190,9 +190,9 @@ export default function HomeScreen() {
             <Ionicons
               name={isUp ? 'arrow-up' : 'arrow-down'}
               size={12}
-              color={isUp ? Theme.colors.success : Theme.colors.accent}
+              color={isUp ? '#30D158' : Theme.colors.accent}
             />
-            <Text style={[styles.changeText, { color: isUp ? Theme.colors.success : Theme.colors.accent }]}>
+            <Text style={[styles.changeText, { color: isUp ? '#30D158' : Theme.colors.accent }]}>
               {isUp ? '+' : ''}{priceChange.toFixed(2)}%
             </Text>
           </View>
@@ -226,12 +226,12 @@ export default function HomeScreen() {
           <Ionicons
             name={isPositive ? 'arrow-up' : 'arrow-down'}
             size={14}
-            color={isPositive ? Theme.colors.success : Theme.colors.accent}
+            color={isPositive ? '#30D158' : Theme.colors.accent}
           />
           <Text
             style={[
               styles.pnlText,
-              { color: isPositive ? Theme.colors.success : Theme.colors.accent },
+              { color: isPositive ? '#30D158' : Theme.colors.accent },
             ]}
           >
             {isPositive ? '+' : ''}{formatCurrency(totalPnL)} ({isPositive ? '+' : ''}{totalPnLPercent.toFixed(2)}%)
@@ -246,7 +246,7 @@ export default function HomeScreen() {
           onPress={() => router.push('/(app)/send-options')}
         >
           <LinearGradient
-            colors={[Theme.colors.primary, Theme.colors.primaryDark]}
+            colors={Theme.colors.primaryLinearGradient}
             style={styles.actionButtonGradient}
           >
             <Ionicons name="arrow-up" size={28} color={Theme.colors.white} />
@@ -259,7 +259,7 @@ export default function HomeScreen() {
           onPress={() => router.push('/(app)/receive-options')}
         >
           <LinearGradient
-            colors={[Theme.colors.primary, Theme.colors.primaryDark]}
+            colors={Theme.colors.primaryLinearGradient}
             style={styles.actionButtonGradient}
           >
             <Ionicons name="arrow-down" size={28} color={Theme.colors.white} />
@@ -272,7 +272,7 @@ export default function HomeScreen() {
           onPress={() => router.push('/(app)/swap')}
         >
           <LinearGradient
-            colors={[Theme.colors.primary, Theme.colors.primaryDark]}
+            colors={Theme.colors.primaryLinearGradient}
             style={styles.actionButtonGradient}
           >
             <Ionicons name="swap-horizontal" size={28} color={Theme.colors.white} />
@@ -285,7 +285,7 @@ export default function HomeScreen() {
           onPress={() => router.push('/deposit')}
         >
           <LinearGradient
-            colors={[Theme.colors.primary, Theme.colors.primaryDark]}
+            colors={Theme.colors.primaryLinearGradient}
             style={styles.actionButtonGradient}
           >
             <Ionicons name="add" size={28} color={Theme.colors.white} />
@@ -313,7 +313,7 @@ export default function HomeScreen() {
           {cashBalance > 0 && (
             <View style={styles.assetCard}>
               <LinearGradient
-                colors={[Theme.colors.success, '#1B8B4A']}
+                colors={['#30D158', '#1B8B4A']}
                 style={[styles.assetIcon, styles.cashIcon]}
               >
                 <Text style={styles.cashIconText}>$</Text>
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: Theme.spacing.medium,
     borderBottomWidth: 1,
-    borderBottomColor: Theme.colors.darkLight,
+    borderBottomColor: Theme.colors.lightDark,
   },
   assetIcon: {
     width: 44,

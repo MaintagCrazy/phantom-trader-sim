@@ -74,7 +74,7 @@ export default function SendOptionsScreen() {
         }}
       >
         <LinearGradient
-          colors={[Theme.colors.primary, Theme.colors.primaryDark]}
+          colors={Theme.colors.primaryLinearGradient}
           style={styles.buyButtonGradient}
         >
           <Text style={styles.buyButtonText}>Buy Crypto</Text>

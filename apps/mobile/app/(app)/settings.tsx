@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     paddingVertical: Theme.spacing.medium,
     paddingHorizontal: Theme.spacing.medium,
     borderBottomWidth: 1,
-    borderBottomColor: Theme.colors.darkLight,
+    borderBottomColor: Theme.colors.lightDark,
   },
   iconContainer: {
     width: 36,

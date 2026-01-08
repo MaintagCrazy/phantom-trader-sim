@@ -216,7 +216,7 @@ export default function SwapScreen() {
           <LinearGradient
             colors={(!fromAmount || !toAmount || isLoading)
               ? [Theme.colors.grey, Theme.colors.grey]
-              : [Theme.colors.primary, Theme.colors.primaryDark]
+              : Theme.colors.primaryLinearGradient
             }
             style={styles.actionButtonGradient}
           >
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   tokenSelect: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Theme.colors.darkLight,
+    backgroundColor: Theme.colors.lightDark,
     borderRadius: Theme.borderRadius.default,
     paddingHorizontal: Theme.spacing.medium,
     paddingVertical: Theme.spacing.small,
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Theme.spacing.large,
     paddingVertical: Theme.spacing.medium,
     borderBottomWidth: 1,
-    borderBottomColor: Theme.colors.darkLight,
+    borderBottomColor: Theme.colors.lightDark,
   },
   coinImage: {
     width: 44,
