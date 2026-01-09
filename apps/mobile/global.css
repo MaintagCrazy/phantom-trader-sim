@@ -25,6 +25,8 @@ html {
   margin: 0;
   padding: 0;
   background: linear-gradient(180deg, #8878F4 0%, #6155AC 100%);
+  background-attachment: fixed;
+  background-size: 100% 100%;
   overflow: hidden;
   overscroll-behavior: none;
 }
