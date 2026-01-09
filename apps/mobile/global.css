@@ -77,6 +77,16 @@ body {
   background-color: transparent !important;
 }
 
+/* Override React Native Web dark background at top (SafeAreaView) */
+.r-backgroundColor-1v7bxxj {
+  background-color: transparent !important;
+}
+
+/* Override any dark backgrounds from RN Web */
+[class*="r-backgroundColor"] {
+  background-color: transparent !important;
+}
+
 /* Remove any top gaps on web */
 html, body, #root {
   margin-top: 0 !important;
