@@ -1,10 +1,11 @@
 // BMO Wallet Style Settings Screen
 // Modal presentation
 
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Theme from '@/styles/theme';
 import { useUserStore } from '@/store/userStore';
 
@@ -34,6 +35,7 @@ const SettingsItem = ({ icon, title, subtitle, onPress, showArrow = true, color 
 
 export default function SettingsScreen() {
   const { userId } = useUserStore();
+  const insets = useSafeAreaInsets();
 
   const handleSecurityPress = () => {
     Alert.alert('Security', 'Security settings coming soon');
@@ -67,7 +69,8 @@ export default function SettingsScreen() {
   };
 
   return (
-    <LinearGradient colors={Theme.colors.primaryLinearGradient} style={styles.container}>
+    <View style={styles.safeAreaBackground}>
+      <LinearGradient colors={Theme.colors.primaryLinearGradient} style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
@@ -77,7 +80,11 @@ export default function SettingsScreen() {
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+      >
         {/* Account Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
@@ -153,11 +160,16 @@ export default function SettingsScreen() {
           <Text style={styles.debugText}>User ID: {userId?.slice(0, 8)}...</Text>
         </View>
       </ScrollView>
-    </LinearGradient>
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  safeAreaBackground: {
+    flex: 1,
+    backgroundColor: '#6155AC', // Match gradient end color for bottom safe area
+  },
   container: {
     flex: 1,
   },

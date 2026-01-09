@@ -6,12 +6,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Theme from '@/styles/theme';
 import { useUserStore } from '@/store/userStore';
 import { getTransactions, Transaction } from '@/services/api';
 
 export default function ActivityScreen() {
   const { userId } = useUserStore();
+  const insets = useSafeAreaInsets();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -96,38 +98,44 @@ export default function ActivityScreen() {
   );
 
   return (
-    <LinearGradient colors={Theme.colors.primaryLinearGradient} style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={25} color={Theme.colors.primary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Activity</Text>
-        <View style={styles.placeholder} />
-      </View>
+    <View style={styles.safeAreaBackground}>
+      <LinearGradient colors={Theme.colors.primaryLinearGradient} style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={25} color={Theme.colors.primary} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Activity</Text>
+          <View style={styles.placeholder} />
+        </View>
 
-      {/* Transaction List */}
-      <FlatList
-        data={transactions}
-        renderItem={renderTransaction}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={Theme.colors.primary}
-            colors={[Theme.colors.primary]}
-          />
-        }
-        ListEmptyComponent={!isLoading ? EmptyState : null}
-      />
-    </LinearGradient>
+        {/* Transaction List */}
+        <FlatList
+          data={transactions}
+          renderItem={renderTransaction}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 20 }]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={Theme.colors.primary}
+              colors={[Theme.colors.primary]}
+            />
+          }
+          ListEmptyComponent={!isLoading ? EmptyState : null}
+        />
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  safeAreaBackground: {
+    flex: 1,
+    backgroundColor: '#6155AC',
+  },
   container: {
     flex: 1,
   },

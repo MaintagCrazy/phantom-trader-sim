@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Theme from '@/styles/theme';
 import { useUserStore } from '@/store/userStore';
 import { usePortfolioStore } from '@/store/portfolioStore';
@@ -16,6 +17,7 @@ export default function SwapScreen() {
   const { userId } = useUserStore();
   const { portfolio, swap, isLoading } = usePortfolioStore();
   const { coins, fetchCoins } = useCoinsStore();
+  const insets = useSafeAreaInsets();
 
   const [fromCoin, setFromCoin] = useState<string | null>(null);
   const [toCoin, setToCoin] = useState<string | null>(null);
@@ -137,7 +139,8 @@ export default function SwapScreen() {
   };
 
   return (
-    <LinearGradient colors={Theme.colors.primaryLinearGradient} style={styles.container}>
+    <View style={styles.safeAreaBackground}>
+      <LinearGradient colors={Theme.colors.primaryLinearGradient} style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
@@ -147,7 +150,7 @@ export default function SwapScreen() {
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
         {/* You Pay Section */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>You Pay</Text>
@@ -266,11 +269,16 @@ export default function SwapScreen() {
           </View>
         </View>
       </Modal>
-    </LinearGradient>
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  safeAreaBackground: {
+    flex: 1,
+    backgroundColor: '#6155AC', // Match gradient end color for bottom safe area
+  },
   container: {
     flex: 1,
   },

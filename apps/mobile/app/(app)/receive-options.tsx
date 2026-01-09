@@ -5,6 +5,7 @@ import { View, Text, TouchableOpacity, StyleSheet, FlatList, Image, Alert, Share
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
 import Theme from '@/styles/theme';
 import { useCoinsStore, Coin } from '@/store/coinsStore';
@@ -18,6 +19,7 @@ const DEMO_ADDRESSES: Record<string, string> = {
 
 export default function ReceiveOptionsScreen() {
   const { coins } = useCoinsStore();
+  const insets = useSafeAreaInsets();
 
   // Get top coins for receiving
   const topCoins = coins.slice(0, 10);
@@ -72,40 +74,46 @@ export default function ReceiveOptionsScreen() {
   );
 
   return (
-    <LinearGradient colors={Theme.colors.primaryLinearGradient} style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
-          <Ionicons name="close" size={28} color={Theme.colors.primary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Receive</Text>
-        <View style={styles.placeholder} />
-      </View>
+    <View style={styles.safeAreaBackground}>
+      <LinearGradient colors={Theme.colors.primaryLinearGradient} style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
+            <Ionicons name="close" size={28} color={Theme.colors.primary} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Receive</Text>
+          <View style={styles.placeholder} />
+        </View>
 
-      {/* Subtitle */}
-      <Text style={styles.subtitle}>Choose a coin to receive</Text>
+        {/* Subtitle */}
+        <Text style={styles.subtitle}>Choose a coin to receive</Text>
 
-      {/* Info Banner */}
-      <View style={styles.infoBanner}>
-        <Ionicons name="information-circle" size={20} color={Theme.colors.primary} />
-        <Text style={styles.infoText}>
-          This is a demo app. Addresses shown are for illustration only.
-        </Text>
-      </View>
+        {/* Info Banner */}
+        <View style={styles.infoBanner}>
+          <Ionicons name="information-circle" size={20} color={Theme.colors.primary} />
+          <Text style={styles.infoText}>
+            This is a demo app. Addresses shown are for illustration only.
+          </Text>
+        </View>
 
-      {/* Coin List */}
-      <FlatList
-        data={topCoins}
-        keyExtractor={(item) => item.id}
-        renderItem={renderCoin}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
-    </LinearGradient>
+        {/* Coin List */}
+        <FlatList
+          data={topCoins}
+          keyExtractor={(item) => item.id}
+          renderItem={renderCoin}
+          contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 20 }]}
+          showsVerticalScrollIndicator={false}
+        />
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  safeAreaBackground: {
+    flex: 1,
+    backgroundColor: '#6155AC',
+  },
   container: {
     flex: 1,
   },

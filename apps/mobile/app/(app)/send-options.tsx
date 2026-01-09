@@ -5,6 +5,7 @@ import { View, Text, TouchableOpacity, StyleSheet, FlatList, Image } from 'react
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Theme from '@/styles/theme';
 import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore } from '@/store/coinsStore';
@@ -12,6 +13,7 @@ import { useCoinsStore } from '@/store/coinsStore';
 export default function SendOptionsScreen() {
   const { portfolio } = usePortfolioStore();
   const { coins } = useCoinsStore();
+  const insets = useSafeAreaInsets();
 
   const holdings = portfolio?.holdings || [];
 
@@ -84,33 +86,39 @@ export default function SendOptionsScreen() {
   );
 
   return (
-    <LinearGradient colors={Theme.colors.primaryLinearGradient} style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
-          <Ionicons name="close" size={28} color={Theme.colors.primary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Send</Text>
-        <View style={styles.placeholder} />
-      </View>
+    <View style={styles.safeAreaBackground}>
+      <LinearGradient colors={Theme.colors.primaryLinearGradient} style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
+            <Ionicons name="close" size={28} color={Theme.colors.primary} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Send</Text>
+          <View style={styles.placeholder} />
+        </View>
 
-      {/* Subtitle */}
-      <Text style={styles.subtitle}>Choose an asset to send</Text>
+        {/* Subtitle */}
+        <Text style={styles.subtitle}>Choose an asset to send</Text>
 
-      {/* Asset List */}
-      <FlatList
-        data={holdings}
-        keyExtractor={(item) => item.coinId}
-        renderItem={renderAsset}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={EmptyState}
-      />
-    </LinearGradient>
+        {/* Asset List */}
+        <FlatList
+          data={holdings}
+          keyExtractor={(item) => item.coinId}
+          renderItem={renderAsset}
+          contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 20 }]}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={EmptyState}
+        />
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  safeAreaBackground: {
+    flex: 1,
+    backgroundColor: '#6155AC',
+  },
   container: {
     flex: 1,
   },
