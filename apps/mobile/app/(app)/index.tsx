@@ -11,6 +11,7 @@ import {
   RefreshControl,
   Platform,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -219,6 +220,14 @@ export default function HomeScreen() {
 
   const ListHeaderComponent = () => (
     <>
+      {/* Refresh Indicator - shows when pulling to refresh */}
+      {refreshing && (
+        <View style={styles.refreshIndicator}>
+          <ActivityIndicator size="small" color={Theme.colors.primary} />
+          <Text style={styles.refreshText}>Updating...</Text>
+        </View>
+      )}
+
       {/* Balance Section */}
       <View style={styles.balanceSection}>
         <Text style={styles.balanceLabel}>Total Balance</Text>
@@ -600,5 +609,19 @@ const styles = StyleSheet.create({
     fontSize: Theme.fonts.sizes.normal,
     color: Theme.colors.lightGrey,
     marginTop: Theme.spacing.small,
+  },
+
+  // Pull-to-Refresh Indicator
+  refreshIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Theme.spacing.medium,
+    paddingTop: Theme.spacing.large,
+  },
+  refreshText: {
+    color: Theme.colors.lightGrey,
+    marginLeft: Theme.spacing.small,
+    fontSize: Theme.fonts.sizes.normal,
   },
 });

@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Trade Demo",
-    "slug": "trade-demo",
+    "name": "Phantom Wallet",
+    "slug": "phantom-wallet",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "tradedemo",
+    "scheme": "phantomwallet",
     "userInterfaceStyle": "dark",
     "newArchEnabled": false,
     "splash": {
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.tradedemo.app",
+      "bundleIdentifier": "com.phantomwallet.app",
       "backgroundColor": "#1A1A1A"
     },
     "android": {
@@ -23,15 +23,15 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1A1A1A"
       },
-      "package": "com.tradedemo.app"
+      "package": "com.phantomwallet.app"
     },
     "web": {
       "bundler": "metro",
       "output": "single",
       "favicon": "./public/icon-192.png",
-      "name": "Trade Demo",
-      "shortName": "Trade Demo",
-      "description": "Crypto paper trading simulator",
+      "name": "Phantom Wallet",
+      "shortName": "Phantom",
+      "description": "Crypto wallet simulator",
       "themeColor": "#1A1A1A",
       "backgroundColor": "#1A1A1A",
       "viewport": "width=device-width, initial-scale=1, viewport-fit=cover"
