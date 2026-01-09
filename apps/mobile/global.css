@@ -24,7 +24,7 @@ html {
   width: 100%;
   margin: 0;
   padding: 0;
-  background-color: #1A1A1A;
+  background: linear-gradient(180deg, #8878F4 0%, #6155AC 100%);
   overflow: hidden;
   overscroll-behavior: none;
 }
@@ -35,7 +35,7 @@ body {
   width: 100%;
   margin: 0;
   padding: 0;
-  background-color: #1A1A1A;
+  background: transparent;
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-text-size-adjust: 100%;
@@ -54,7 +54,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background-color: #1A1A1A;
+  background: transparent;
   position: fixed;
   top: 0;
   left: 0;
