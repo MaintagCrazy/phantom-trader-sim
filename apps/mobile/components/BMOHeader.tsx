@@ -62,11 +62,11 @@ export default function BMOHeader({
       <View style={styles.leftContainer}>
         {showBack ? (
           <TouchableOpacity style={styles.iconButton} onPress={handleBack}>
-            <Ionicons name="arrow-back" size={25} color={Theme.colors.primary} />
+            <Ionicons name="arrow-back" size={25} color={Theme.colors.white} />
           </TouchableOpacity>
         ) : showSettings ? (
           <TouchableOpacity style={styles.iconButton} onPress={handleSettingsPress}>
-            <Ionicons name="settings-outline" size={25} color={Theme.colors.primary} />
+            <Ionicons name="settings-outline" size={25} color={Theme.colors.white} />
           </TouchableOpacity>
         ) : (
           <View style={styles.iconPlaceholder} />
@@ -85,7 +85,7 @@ export default function BMOHeader({
       <View style={styles.rightContainer}>
         {showQR ? (
           <TouchableOpacity style={styles.iconButton} onPress={handleQRPress}>
-            <Ionicons name="qr-code-outline" size={25} color={Theme.colors.primary} />
+            <Ionicons name="qr-code-outline" size={25} color={Theme.colors.white} />
           </TouchableOpacity>
         ) : (
           <View style={styles.iconPlaceholder} />
