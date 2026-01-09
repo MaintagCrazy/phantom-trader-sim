@@ -89,9 +89,9 @@ html, body, #root {
   padding-top: 0 !important;
 }
 
-/* iOS Safe Area - only handle top area, let app handle bottom */
+/* iOS Safe Area - extend dark background into safe areas */
 @supports (padding-top: env(safe-area-inset-top)) {
-  /* Extend background behind status bar */
+  /* Extend background behind status bar (top) */
   html::before {
     content: '';
     position: fixed;
@@ -99,6 +99,18 @@ html, body, #root {
     left: 0;
     right: 0;
     height: env(safe-area-inset-top);
+    background: #1A1A1A;
+    z-index: 99999;
+  }
+
+  /* Extend background behind home indicator (bottom) */
+  html::after {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-bottom);
     background: #1A1A1A;
     z-index: 99999;
   }
