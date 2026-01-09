@@ -15,9 +15,33 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Toast } from '@/components/Toast';
 import Theme from '@/styles/theme';
 
-// Fix for Expo Router's default gray backgrounds and dark SafeAreaView on web
+// Fix for Expo Router's default gray backgrounds and iOS status bar
 const fixWebBackgrounds = () => {
   if (Platform.OS === 'web' && typeof document !== 'undefined') {
+    // Fix viewport meta tag for iOS
+    const viewportMeta = document.querySelector('meta[name="viewport"]');
+    if (viewportMeta) {
+      viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no');
+    }
+
+    // Add iOS status bar meta tags
+    if (!document.querySelector('meta[name="apple-mobile-web-app-capable"]')) {
+      const appleMeta = document.createElement('meta');
+      appleMeta.name = 'apple-mobile-web-app-capable';
+      appleMeta.content = 'yes';
+      document.head.appendChild(appleMeta);
+    }
+    if (!document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')) {
+      const statusBarMeta = document.createElement('meta');
+      statusBarMeta.name = 'apple-mobile-web-app-status-bar-style';
+      statusBarMeta.content = 'black-translucent';
+      document.head.appendChild(statusBarMeta);
+    }
+
+    // Set HTML and body background to dark
+    document.documentElement.style.backgroundColor = '#1A1A1A';
+    document.body.style.backgroundColor = '#1A1A1A';
+
     const fixBackgrounds = () => {
       document.querySelectorAll('*').forEach((el: Element) => {
         const htmlEl = el as HTMLElement;
@@ -30,6 +54,11 @@ const fixWebBackgrounds = () => {
 
         // Fix dark SafeAreaView background (rgb(28, 28, 30))
         if (computedBg === 'rgb(28, 28, 30)') {
+          htmlEl.style.backgroundColor = 'transparent';
+        }
+
+        // Fix white backgrounds
+        if (computedBg === 'rgb(255, 255, 255)') {
           htmlEl.style.backgroundColor = 'transparent';
         }
       });
