@@ -15,7 +15,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.tradedemo.app"
+      "bundleIdentifier": "com.tradedemo.app",
+      "backgroundColor": "#1A1A1A"
     },
     "android": {
       "adaptiveIcon": {

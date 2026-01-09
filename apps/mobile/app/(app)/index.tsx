@@ -162,6 +162,7 @@ export default function HomeScreen() {
     const currentValue = holding.amount * currentPrice;
     const priceChange = liveCoin?.priceChange24h || 0;
     const isUp = priceChange >= 0;
+    const coinImage = liveCoin?.image || holding.image;
 
     return (
       <TouchableOpacity
@@ -169,8 +170,8 @@ export default function HomeScreen() {
         onPress={() => router.push(`/token/${holding.coinId}`)}
         activeOpacity={0.7}
       >
-        {holding.image ? (
-          <Image source={{ uri: holding.image }} style={styles.assetIcon} />
+        {coinImage ? (
+          <Image source={{ uri: coinImage }} style={styles.assetIcon} />
         ) : (
           <View style={[styles.assetIcon, styles.assetIconPlaceholder]}>
             <Text style={styles.assetIconText}>
