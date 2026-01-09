@@ -77,8 +77,9 @@ html, body, #root {
   padding: 0 !important;
 }
 
-/* iOS Safari Safe Area Fix - cover status bar at top */
+/* iOS Safari Safe Area Fix - cover BOTH top and bottom */
 @supports (padding: env(safe-area-inset-top)) {
+  /* Top safe area - status bar */
   html::before {
     content: '';
     position: fixed;
@@ -87,6 +88,19 @@ html, body, #root {
     right: 0;
     height: env(safe-area-inset-top);
     background-color: #1A1A1A;
+    z-index: 99999;
+    pointer-events: none;
+  }
+
+  /* Bottom safe area - home indicator */
+  html::after {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-bottom);
+    background: linear-gradient(to bottom, #262626, #262626);
     z-index: 99999;
     pointer-events: none;
   }
