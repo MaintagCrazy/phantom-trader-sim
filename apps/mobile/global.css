@@ -35,12 +35,13 @@ body {
   width: 100%;
   margin: 0;
   padding: 0;
-  background-color: #1A1A1A;
+  /* Use gradient end color so bottom safe area matches */
+  background: linear-gradient(to bottom, #1A1A1A 0%, #1A1A1A 90%, #262626 100%);
+  background-color: #262626;
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-text-size-adjust: 100%;
   touch-action: pan-x pan-y;
-  /* Remove fixed positioning - let content flow naturally */
 }
 
 #root {
@@ -55,22 +56,19 @@ body {
   background: transparent;
 }
 
-/* Override Expo Router's default light gray scene backgrounds */
-#root [style*="background-color: rgb(242, 242, 242)"],
-#root [style*="background-color: rgb(242,242,242)"],
-#root [style*="background-color:#f2f2f2"],
-#root [style*="background-color: #f2f2f2"] {
+/* AGGRESSIVE: Override ALL Expo Router gray backgrounds */
+/* These inline styles are injected by Expo Router and must be overridden */
+[style*="background-color: rgb(242, 242, 242)"],
+[style*="background-color: rgb(242,242,242)"],
+[style*="background-color:#f2f2f2"],
+[style*="background-color: #f2f2f2"],
+.r-bottom-1p0dtai.r-left-1d2f490.r-position-u8s1d.r-right-zchlnj.r-top-ipm5af,
+.r-backgroundColor-1v7bxxj,
+#root > div > div > div > div > div > div,
+#root div[style*="242, 242, 242"],
+#root div[style*="242,242,242"] {
   background-color: transparent !important;
-}
-
-/* Ensure all scene containers are transparent for gradient to show */
-.r-bottom-1p0dtai.r-left-1d2f490.r-position-u8s1d.r-right-zchlnj.r-top-ipm5af {
-  background-color: transparent !important;
-}
-
-/* Override React Native Web dark SafeAreaView background at top */
-.r-backgroundColor-1v7bxxj {
-  background-color: transparent !important;
+  background: transparent !important;
 }
 
 /* Remove any gaps */
