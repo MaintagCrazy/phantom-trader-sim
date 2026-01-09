@@ -1,12 +1,17 @@
-// BMO Wallet Style Header
-// Settings (left) | Account Name (center) | QR Code (right)
+// BMO Wallet Style Header - Exact match to reference wallet
+// Settings (left) | Account Name + Down Arrow (center) | QR Code (right)
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useAccountsStore } from '@/store/accountsStore';
 import Theme from '@/styles/theme';
+
+// Custom SVG Icons (exact match to reference wallet)
+import SettingsIcon from '@/assets/svg/SettingsIcon';
+import QRCodeIcon from '@/assets/svg/QRCodeIcon';
+import DownArrowIcon from '@/assets/svg/DownArrowIcon';
+import LeftArrowIcon from '@/assets/svg/LeftArrowIcon';
 
 interface BMOHeaderProps {
   showSettings?: boolean;
@@ -39,8 +44,7 @@ export default function BMOHeader({
     if (onQRPress) {
       onQRPress();
     } else {
-      // QR scanner functionality
-      console.log('QR pressed');
+      router.push('/(app)/camera');
     }
   };
 
@@ -54,7 +58,7 @@ export default function BMOHeader({
     }
   };
 
-  const accountName = activeAccount?.name || 'Trade Demo';
+  const accountName = activeAccount?.name || 'Main Account';
 
   return (
     <View style={styles.container}>
@@ -62,22 +66,22 @@ export default function BMOHeader({
       <View style={styles.leftContainer}>
         {showBack ? (
           <TouchableOpacity style={styles.iconButton} onPress={handleBack}>
-            <Ionicons name="arrow-back" size={25} color={Theme.colors.white} />
+            <LeftArrowIcon width={25} height={25} fill={Theme.colors.white} />
           </TouchableOpacity>
         ) : showSettings ? (
           <TouchableOpacity style={styles.iconButton} onPress={handleSettingsPress}>
-            <Ionicons name="settings-outline" size={25} color={Theme.colors.white} />
+            <SettingsIcon width={25} height={25} fill={Theme.colors.white} />
           </TouchableOpacity>
         ) : (
           <View style={styles.iconPlaceholder} />
         )}
       </View>
 
-      {/* Center Section - Account Name */}
+      {/* Center Section - Account Name with Down Arrow */}
       <TouchableOpacity style={styles.centerContainer} onPress={handleAccountPress}>
         <Text style={styles.accountText}>{title || accountName}</Text>
         {!title && (
-          <Ionicons name="chevron-down" size={20} color={Theme.colors.white} style={styles.chevron} />
+          <DownArrowIcon width={30} height={30} fill={Theme.colors.white} />
         )}
       </TouchableOpacity>
 
@@ -85,7 +89,7 @@ export default function BMOHeader({
       <View style={styles.rightContainer}>
         {showQR ? (
           <TouchableOpacity style={styles.iconButton} onPress={handleQRPress}>
-            <Ionicons name="qr-code-outline" size={25} color={Theme.colors.white} />
+            <QRCodeIcon width={25} height={25} fill={Theme.colors.white} />
           </TouchableOpacity>
         ) : (
           <View style={styles.iconPlaceholder} />
@@ -129,8 +133,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: Theme.fonts.sizes.header,
     color: Theme.colors.white,
-  },
-  chevron: {
-    marginLeft: 4,
   },
 });
