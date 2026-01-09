@@ -33,7 +33,8 @@
       "shortName": "Trade Demo",
       "description": "Crypto paper trading simulator",
       "themeColor": "#1A1A1A",
-      "backgroundColor": "#1A1A1A"
+      "backgroundColor": "#1A1A1A",
+      "viewport": "width=device-width, initial-scale=1, viewport-fit=cover"
     },
     "plugins": [
       "expo-router"

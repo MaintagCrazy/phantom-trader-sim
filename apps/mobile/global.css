@@ -88,3 +88,25 @@ html, body, #root {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
+
+/* iOS Safe Area - extend background into status bar area */
+@supports (padding-top: env(safe-area-inset-top)) {
+  html {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Extend background behind status bar */
+  html::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top);
+    background: #1A1A1A;
+    z-index: 99999;
+  }
+}
