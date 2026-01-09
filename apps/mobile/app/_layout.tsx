@@ -95,14 +95,14 @@ export default function RootLayout() {
   }, [userId]);
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <SafeAreaProvider>
-        <ErrorBoundary>
-          <LinearGradient
-            colors={Theme.colors.primaryLinearGradient}
-            style={styles.container}
-          >
-            <StatusBar style="light" backgroundColor="transparent" translucent={true} />
+    <LinearGradient
+      colors={Theme.colors.secondaryLinearGradient}
+      style={styles.container}
+    >
+      <StatusBar style="light" translucent={true} />
+      <GestureHandlerRootView style={styles.container}>
+        <SafeAreaProvider>
+          <ErrorBoundary>
             <Toast />
             <Stack
               screenOptions={{
@@ -173,10 +173,10 @@ export default function RootLayout() {
                 }}
               />
             </Stack>
-          </LinearGradient>
-        </ErrorBoundary>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+          </ErrorBoundary>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </LinearGradient>
   );
 }
 

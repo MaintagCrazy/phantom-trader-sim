@@ -28,7 +28,7 @@ export default function AppLayout() {
 
   return (
     <LinearGradient
-      colors={Theme.colors.primaryLinearGradient}
+      colors={Theme.colors.secondaryLinearGradient}
       style={styles.container}
     >
       <Stack
