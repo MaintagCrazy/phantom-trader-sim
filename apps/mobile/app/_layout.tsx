@@ -15,14 +15,21 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Toast } from '@/components/Toast';
 import Theme from '@/styles/theme';
 
-// Fix for Expo Router's default gray backgrounds on web
+// Fix for Expo Router's default gray backgrounds and dark SafeAreaView on web
 const fixWebBackgrounds = () => {
   if (Platform.OS === 'web' && typeof document !== 'undefined') {
     const fixBackgrounds = () => {
       document.querySelectorAll('*').forEach((el: Element) => {
         const htmlEl = el as HTMLElement;
-        const style = htmlEl.getAttribute('style');
-        if (style && style.includes('rgb(242, 242, 242)')) {
+        const computedBg = window.getComputedStyle(htmlEl).backgroundColor;
+
+        // Fix light gray backgrounds (Expo Router default)
+        if (computedBg === 'rgb(242, 242, 242)') {
+          htmlEl.style.backgroundColor = 'transparent';
+        }
+
+        // Fix dark SafeAreaView background (rgb(28, 28, 30))
+        if (computedBg === 'rgb(28, 28, 30)') {
           htmlEl.style.backgroundColor = 'transparent';
         }
       });
@@ -36,7 +43,7 @@ const fixWebBackgrounds = () => {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['style']
+      attributeFilter: ['style', 'class']
     });
 
     return () => observer.disconnect();
