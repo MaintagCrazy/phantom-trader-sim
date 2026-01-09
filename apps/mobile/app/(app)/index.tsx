@@ -224,7 +224,6 @@ export default function HomeScreen() {
       {refreshing && (
         <View style={styles.refreshIndicator}>
           <ActivityIndicator size="small" color={Theme.colors.primary} />
-          <Text style={styles.refreshText}>Updating...</Text>
         </View>
       )}
 

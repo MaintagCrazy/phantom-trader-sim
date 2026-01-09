@@ -48,6 +48,7 @@ body {
   width: 100%;
   min-height: 100vh;
   min-height: -webkit-fill-available; /* iOS full height including safe areas */
+  min-height: calc(100% + env(safe-area-inset-bottom, 0px)); /* Extend into bottom safe area */
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -78,9 +79,8 @@ html, body, #root {
   padding: 0 !important;
 }
 
-/* iOS Safari Safe Area Fix - cover BOTH top and bottom */
+/* iOS Safari Safe Area Fix - cover status bar at top */
 @supports (padding: env(safe-area-inset-top)) {
-  /* Cover status bar at top */
   html::before {
     content: '';
     position: fixed;
@@ -89,19 +89,6 @@ html, body, #root {
     right: 0;
     height: env(safe-area-inset-top);
     background-color: #1A1A1A;
-    z-index: 99999;
-    pointer-events: none;
-  }
-
-  /* Cover home indicator at bottom */
-  html::after {
-    content: '';
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: env(safe-area-inset-bottom);
-    background-color: #262626; /* Match gradient end color */
     z-index: 99999;
     pointer-events: none;
   }

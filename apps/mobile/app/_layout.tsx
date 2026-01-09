@@ -1,6 +1,7 @@
 // BMO Wallet Style Root Layout
 // Pure Stack Navigation - No Tabs
 
+import '../global.css';
 import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -240,6 +241,10 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    // Ensure gradient fills entire viewport on iOS Safari
+    ...(Platform.OS === 'web' ? {
+      minHeight: '100%',
+    } : {}),
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
