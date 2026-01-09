@@ -18,50 +18,40 @@
   height: 0 !important;
 }
 
+/* CRITICAL: Use 100% height, NOT 100dvh - dvh excludes home indicator */
 html {
   height: 100%;
-  height: 100dvh;
   width: 100%;
   margin: 0;
   padding: 0;
-  background: linear-gradient(180deg, #1A1A1A 0%, #262626 100%);
-  background-attachment: fixed;
-  background-size: 100% 100%;
+  /* Solid dark background - fills entire screen including safe areas */
+  background-color: #1A1A1A;
   overflow: hidden;
   overscroll-behavior: none;
 }
 
 body {
   height: 100%;
-  height: 100dvh;
   width: 100%;
   margin: 0;
   padding: 0;
-  background: transparent;
+  background-color: #1A1A1A;
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-text-size-adjust: 100%;
   touch-action: pan-x pan-y;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  /* Remove fixed positioning - let content flow naturally */
 }
 
 #root {
   height: 100%;
-  min-height: 100dvh;
   width: 100%;
+  min-height: 100vh;
+  min-height: -webkit-fill-available; /* iOS full height including safe areas */
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: transparent;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
 }
 
 /* Override Expo Router's default light gray scene backgrounds */
@@ -78,20 +68,19 @@ body {
 }
 
 /* Override React Native Web dark SafeAreaView background at top */
-/* This specific class renders rgb(28, 28, 30) which creates the dark bar */
 .r-backgroundColor-1v7bxxj {
   background-color: transparent !important;
 }
 
-/* Remove any top gaps on web */
+/* Remove any gaps */
 html, body, #root {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-/* iOS Safe Area - extend dark background into status bar area only */
-@supports (padding-top: env(safe-area-inset-top)) {
-  /* Extend background behind status bar (top) */
+/* iOS Safari Safe Area Fix - cover BOTH top and bottom */
+@supports (padding: env(safe-area-inset-top)) {
+  /* Cover status bar at top */
   html::before {
     content: '';
     position: fixed;
@@ -99,7 +88,32 @@ html, body, #root {
     left: 0;
     right: 0;
     height: env(safe-area-inset-top);
-    background: #1A1A1A;
+    background-color: #1A1A1A;
     z-index: 99999;
+    pointer-events: none;
+  }
+
+  /* Cover home indicator at bottom */
+  html::after {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-bottom);
+    background-color: #262626; /* Match gradient end color */
+    z-index: 99999;
+    pointer-events: none;
+  }
+}
+
+/* Ensure the app fills the entire viewport on iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  html, body {
+    height: -webkit-fill-available;
+  }
+
+  #root {
+    min-height: -webkit-fill-available;
   }
 }

@@ -1,10 +1,10 @@
 // BMO Wallet Style Root Layout
 // Pure Stack Navigation - No Tabs
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform, View, Text, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -80,10 +80,19 @@ const fixWebBackgrounds = () => {
   return undefined;
 };
 
+// Hide the HTML splash screen (for web)
+const hideSplashScreen = () => {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    // @ts-ignore - window.hideSplash is defined in index.html
+    window.hideSplash?.();
+  }
+};
+
 export default function RootLayout() {
   const { userId, initUser, loadUser } = useUserStore();
-  const { fetchPortfolio } = usePortfolioStore();
+  const { portfolio, fetchPortfolio } = usePortfolioStore();
   const { fetchCoins } = useCoinsStore();
+  const [isInitializing, setIsInitializing] = useState(true);
 
   // Fix web backgrounds on mount
   useEffect(() => {
@@ -91,13 +100,22 @@ export default function RootLayout() {
     return cleanup;
   }, []);
 
+  // Initialize app
   useEffect(() => {
-    // Initialize user on app start
     const init = async () => {
-      if (!userId) {
-        await initUser();
-      } else {
-        await loadUser();
+      setIsInitializing(true);
+      try {
+        if (!userId) {
+          await initUser();
+        } else {
+          await loadUser();
+        }
+      } catch (error) {
+        console.error('Init error:', error);
+      } finally {
+        setIsInitializing(false);
+        // Hide HTML splash screen after init
+        hideSplashScreen();
       }
     };
     init();
@@ -123,6 +141,9 @@ export default function RootLayout() {
     return () => clearInterval(interval);
   }, [userId]);
 
+  // Show loading state while initializing or waiting for portfolio
+  const isLoading = isInitializing || (userId && !portfolio);
+
   return (
     <LinearGradient
       colors={Theme.colors.secondaryLinearGradient}
@@ -132,6 +153,13 @@ export default function RootLayout() {
       <GestureHandlerRootView style={styles.container}>
         <SafeAreaProvider>
           <ErrorBoundary>
+            {/* Loading Overlay */}
+            {isLoading && (
+              <View style={styles.loadingOverlay}>
+                <ActivityIndicator size="large" color={Theme.colors.primary} />
+                <Text style={styles.loadingText}>Loading your portfolio...</Text>
+              </View>
+            )}
             <Toast />
             <Stack
               screenOptions={{
@@ -212,5 +240,17 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(26, 26, 26, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingText: {
+    color: Theme.colors.lightGrey,
+    fontSize: 16,
+    marginTop: 16,
   },
 });

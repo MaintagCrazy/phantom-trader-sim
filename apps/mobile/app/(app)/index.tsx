@@ -377,8 +377,9 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={Theme.colors.white}
-            colors={[Theme.colors.white]}
+            tintColor={Theme.colors.primary}
+            colors={[Theme.colors.primary]}
+            progressBackgroundColor="transparent"
           />
         }
       />
