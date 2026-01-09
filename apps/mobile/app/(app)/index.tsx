@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   actionButtonGradient: {
     width: 60,
     height: 60,
-    borderRadius: 30,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Theme.spacing.small,
