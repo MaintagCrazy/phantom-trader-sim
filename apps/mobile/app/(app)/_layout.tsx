@@ -29,7 +29,7 @@ export default function AppLayout() {
   return (
     <View style={styles.safeAreaFill}>
       <LinearGradient
-        colors={Theme.colors.primaryLinearGradient}
+        colors={Theme.colors.secondaryLinearGradient}
         style={styles.container}
       >
         <Stack
@@ -172,7 +172,7 @@ export default function AppLayout() {
 const styles = StyleSheet.create({
   safeAreaFill: {
     flex: 1,
-    backgroundColor: '#6155AC', // Purple gradient end - fills iOS safe areas
+    backgroundColor: '#262626', // Dark gradient end - fills iOS safe areas
   },
   container: {
     flex: 1,
