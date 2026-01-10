@@ -39,9 +39,9 @@ const fixWebBackgrounds = () => {
       document.head.appendChild(statusBarMeta);
     }
 
-    // Set HTML and body background to purple gradient end color
-    document.documentElement.style.backgroundColor = '#6155AC';
-    document.body.style.backgroundColor = '#6155AC';
+    // Set HTML and body background to dark gradient end color
+    document.documentElement.style.backgroundColor = '#262626';
+    document.body.style.backgroundColor = '#262626';
 
     const fixBackgrounds = () => {
       document.querySelectorAll('*').forEach((el: Element) => {
@@ -148,7 +148,7 @@ export default function RootLayout() {
   return (
     <View style={styles.safeAreaFill}>
       <LinearGradient
-        colors={Theme.colors.primaryLinearGradient}
+        colors={Theme.colors.secondaryLinearGradient}
         style={styles.container}
       >
         <StatusBar style="light" translucent={true} />
@@ -158,7 +158,7 @@ export default function RootLayout() {
               {/* Loading Overlay */}
               {isLoading && (
                 <View style={styles.loadingOverlay}>
-                  <ActivityIndicator size="large" color={Theme.colors.white} />
+                  <ActivityIndicator size="large" color={Theme.colors.primary} />
                   <Text style={styles.loadingText}>Loading your portfolio...</Text>
                 </View>
               )}
@@ -243,7 +243,7 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   safeAreaFill: {
     flex: 1,
-    backgroundColor: '#6155AC', // Purple gradient end - fills iOS safe areas
+    backgroundColor: '#262626', // Dark gradient end - fills iOS safe areas
   },
   container: {
     flex: 1,
@@ -254,13 +254,13 @@ const styles = StyleSheet.create({
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(97, 85, 172, 0.95)',
+    backgroundColor: 'rgba(26, 26, 26, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
   },
   loadingText: {
-    color: Theme.colors.white,
+    color: Theme.colors.lightGrey,
     fontSize: 16,
     marginTop: 16,
   },
