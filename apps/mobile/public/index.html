@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="theme-color" content="#1A1A1A" />
-    <meta name="background-color" content="#1A1A1A" />
+    <meta name="theme-color" content="#8878F4" />
+    <meta name="background-color" content="#8878F4" />
     <title>Phantom Wallet</title>
     <style id="expo-reset">
       * {
@@ -21,7 +21,7 @@
         width: 100%;
         margin: 0;
         padding: 0;
-        background-color: #1A1A1A;
+        background: transparent;
         overflow: hidden;
       }
 
@@ -33,7 +33,7 @@
         display: flex;
         height: 100%;
         flex: 1;
-        background: linear-gradient(to bottom, #1A1A1A, #262626);
+        background: transparent;
       }
 
       /* Splash Screen Styles */
@@ -47,7 +47,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        background: linear-gradient(180deg, #1A1A1A 0%, #262626 100%);
+        background: linear-gradient(180deg, #8878F4 0%, #6155AC 100%);
         z-index: 9999;
         transition: opacity 0.3s ease-out;
       }
@@ -68,14 +68,14 @@
       .splash-spinner {
         width: 40px;
         height: 40px;
-        border: 3px solid rgba(136, 120, 244, 0.2);
-        border-top-color: #8878F4;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #FFFFFF;
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
 
       .splash-text {
-        color: #A0A0A0;
+        color: rgba(255, 255, 255, 0.8);
         font-size: 14px;
         margin-top: 16px;
       }
