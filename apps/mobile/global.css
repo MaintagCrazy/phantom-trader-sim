@@ -18,14 +18,12 @@
   height: 0 !important;
 }
 
-/* CRITICAL: Use 100% height, NOT 100dvh - dvh excludes home indicator */
 html {
   height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
-  /* Solid dark background - fills entire screen including safe areas */
-  background-color: #1A1A1A;
+  background: transparent;
   overflow: hidden;
   overscroll-behavior: none;
 }
@@ -35,9 +33,7 @@ body {
   width: 100%;
   margin: 0;
   padding: 0;
-  /* Use gradient end color so bottom safe area matches */
-  background: linear-gradient(to bottom, #1A1A1A 0%, #1A1A1A 90%, #262626 100%);
-  background-color: #262626;
+  background: transparent;
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-text-size-adjust: 100%;
@@ -48,8 +44,7 @@ body {
   height: 100%;
   width: 100%;
   min-height: 100vh;
-  min-height: -webkit-fill-available; /* iOS full height including safe areas */
-  min-height: calc(100% + env(safe-area-inset-bottom, 0px)); /* Extend into bottom safe area */
+  min-height: -webkit-fill-available;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -57,7 +52,6 @@ body {
 }
 
 /* AGGRESSIVE: Override ALL Expo Router gray backgrounds */
-/* These inline styles are injected by Expo Router and must be overridden */
 [style*="background-color: rgb(242, 242, 242)"],
 [style*="background-color: rgb(242,242,242)"],
 [style*="background-color:#f2f2f2"],
@@ -75,22 +69,6 @@ body {
 html, body, #root {
   margin: 0 !important;
   padding: 0 !important;
-}
-
-/* iOS Safari Safe Area Fix - cover top only */
-@supports (padding: env(safe-area-inset-top)) {
-  /* Top safe area - status bar */
-  html::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: env(safe-area-inset-top);
-    background-color: #1A1A1A;
-    z-index: 99999;
-    pointer-events: none;
-  }
 }
 
 /* Ensure the app fills the entire viewport on iOS Safari */
