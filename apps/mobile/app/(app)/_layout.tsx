@@ -2,7 +2,7 @@
 // Main app section with Stack navigation wrapped in gradient
 
 import { Stack, router } from 'expo-router';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Theme from '@/styles/theme';
@@ -27,147 +27,153 @@ export default function AppLayout() {
   );
 
   return (
-    <LinearGradient
-      colors={Theme.colors.secondaryLinearGradient}
-      style={styles.container}
-    >
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          headerTransparent: true,
-          gestureEnabled: true,
-          contentStyle: { backgroundColor: 'transparent' },
-        }}
+    <View style={styles.safeAreaFill}>
+      <LinearGradient
+        colors={Theme.colors.primaryLinearGradient}
+        style={styles.container}
       >
-        {/* Home Screen - No header */}
-        <Stack.Screen
-          name="index"
-          options={{
+        <Stack
+          screenOptions={{
             headerShown: false,
-          }}
-        />
-
-        {/* Token Detail Screen */}
-        <Stack.Screen
-          name="token/[id]"
-          options={{
-            headerShown: true,
             headerTransparent: true,
-            headerTitle: '',
-            headerLeft: () => <BackButton />,
+            gestureEnabled: true,
+            contentStyle: { backgroundColor: 'transparent' },
           }}
-        />
+        >
+          {/* Home Screen - No header */}
+          <Stack.Screen
+            name="index"
+            options={{
+              headerShown: false,
+            }}
+          />
 
-        {/* Camera/QR Scanner */}
-        <Stack.Screen
-          name="camera/index"
-          options={{
-            headerShown: false,
-            presentation: 'fullScreenModal',
-          }}
-        />
+          {/* Token Detail Screen */}
+          <Stack.Screen
+            name="token/[id]"
+            options={{
+              headerShown: true,
+              headerTransparent: true,
+              headerTitle: '',
+              headerLeft: () => <BackButton />,
+            }}
+          />
 
-        {/* Token Send */}
-        <Stack.Screen
-          name="token/send/[send]"
-          options={{
-            headerShown: true,
-            headerTransparent: true,
-            headerTitle: 'Send',
-            headerTitleStyle: { color: Theme.colors.white },
-            headerLeft: () => <BackButton />,
-            presentation: 'modal',
-          }}
-        />
+          {/* Camera/QR Scanner */}
+          <Stack.Screen
+            name="camera/index"
+            options={{
+              headerShown: false,
+              presentation: 'fullScreenModal',
+            }}
+          />
 
-        {/* Send Confirmation */}
-        <Stack.Screen
-          name="token/send/send-confirmation"
-          options={{
-            headerShown: true,
-            headerTransparent: true,
-            headerTitle: 'Confirm',
-            headerTitleStyle: { color: Theme.colors.white },
-            headerLeft: () => <BackButton />,
-            presentation: 'modal',
-          }}
-        />
+          {/* Token Send */}
+          <Stack.Screen
+            name="token/send/[send]"
+            options={{
+              headerShown: true,
+              headerTransparent: true,
+              headerTitle: 'Send',
+              headerTitleStyle: { color: Theme.colors.white },
+              headerLeft: () => <BackButton />,
+              presentation: 'modal',
+            }}
+          />
 
-        {/* Token Receive */}
-        <Stack.Screen
-          name="token/receive/[receive]"
-          options={{
-            headerShown: true,
-            headerTransparent: true,
-            headerTitle: '',
-            headerLeft: () => <BackButton />,
-            presentation: 'modal',
-          }}
-        />
+          {/* Send Confirmation */}
+          <Stack.Screen
+            name="token/send/send-confirmation"
+            options={{
+              headerShown: true,
+              headerTransparent: true,
+              headerTitle: 'Confirm',
+              headerTitleStyle: { color: Theme.colors.white },
+              headerLeft: () => <BackButton />,
+              presentation: 'modal',
+            }}
+          />
 
-        {/* Swap Modal */}
-        <Stack.Screen
-          name="swap"
-          options={{
-            presentation: 'modal',
-            headerShown: false,
-            animation: 'slide_from_bottom',
-          }}
-        />
+          {/* Token Receive */}
+          <Stack.Screen
+            name="token/receive/[receive]"
+            options={{
+              headerShown: true,
+              headerTransparent: true,
+              headerTitle: '',
+              headerLeft: () => <BackButton />,
+              presentation: 'modal',
+            }}
+          />
 
-        {/* Activity Screen */}
-        <Stack.Screen
-          name="activity"
-          options={{
-            headerShown: false,
-            animation: 'slide_from_right',
-          }}
-        />
+          {/* Swap Modal */}
+          <Stack.Screen
+            name="swap"
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+              animation: 'slide_from_bottom',
+            }}
+          />
 
-        {/* Discover Screen */}
-        <Stack.Screen
-          name="discover"
-          options={{
-            headerShown: false,
-            animation: 'slide_from_right',
-          }}
-        />
+          {/* Activity Screen */}
+          <Stack.Screen
+            name="activity"
+            options={{
+              headerShown: false,
+              animation: 'slide_from_right',
+            }}
+          />
 
-        {/* Settings Modal */}
-        <Stack.Screen
-          name="settings"
-          options={{
-            presentation: 'modal',
-            headerShown: false,
-            animation: 'slide_from_bottom',
-          }}
-        />
+          {/* Discover Screen */}
+          <Stack.Screen
+            name="discover"
+            options={{
+              headerShown: false,
+              animation: 'slide_from_right',
+            }}
+          />
 
-        {/* Send Options Modal */}
-        <Stack.Screen
-          name="send-options"
-          options={{
-            presentation: 'modal',
-            headerShown: false,
-            animation: 'slide_from_bottom',
-          }}
-        />
+          {/* Settings Modal */}
+          <Stack.Screen
+            name="settings"
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+              animation: 'slide_from_bottom',
+            }}
+          />
 
-        {/* Receive Options Modal */}
-        <Stack.Screen
-          name="receive-options"
-          options={{
-            presentation: 'modal',
-            headerShown: false,
-            animation: 'slide_from_bottom',
-          }}
-        />
-      </Stack>
-    </LinearGradient>
+          {/* Send Options Modal */}
+          <Stack.Screen
+            name="send-options"
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+              animation: 'slide_from_bottom',
+            }}
+          />
+
+          {/* Receive Options Modal */}
+          <Stack.Screen
+            name="receive-options"
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+              animation: 'slide_from_bottom',
+            }}
+          />
+        </Stack>
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  safeAreaFill: {
+    flex: 1,
+    backgroundColor: '#6155AC', // Purple gradient end - fills iOS safe areas
+  },
   container: {
     flex: 1,
   },
