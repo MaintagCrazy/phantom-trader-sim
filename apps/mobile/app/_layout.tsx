@@ -39,9 +39,9 @@ const fixWebBackgrounds = () => {
       document.head.appendChild(statusBarMeta);
     }
 
-    // Set HTML and body background to dark
-    document.documentElement.style.backgroundColor = '#1A1A1A';
-    document.body.style.backgroundColor = '#1A1A1A';
+    // Set HTML and body background to purple gradient end color
+    document.documentElement.style.backgroundColor = '#6155AC';
+    document.body.style.backgroundColor = '#6155AC';
 
     const fixBackgrounds = () => {
       document.querySelectorAll('*').forEach((el: Element) => {
@@ -146,99 +146,105 @@ export default function RootLayout() {
   const isLoading = isInitializing || (userId && !portfolio);
 
   return (
-    <LinearGradient
-      colors={Theme.colors.secondaryLinearGradient}
-      style={styles.container}
-    >
-      <StatusBar style="light" translucent={true} />
-      <GestureHandlerRootView style={styles.container}>
-        <SafeAreaProvider>
-          <ErrorBoundary>
-            {/* Loading Overlay */}
-            {isLoading && (
-              <View style={styles.loadingOverlay}>
-                <ActivityIndicator size="large" color={Theme.colors.primary} />
-                <Text style={styles.loadingText}>Loading your portfolio...</Text>
-              </View>
-            )}
-            <Toast />
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: 'transparent' },
-                animation: 'slide_from_right',
-              }}
-            >
-              {/* Main App Section */}
-              <Stack.Screen name="(app)" options={{ headerShown: false }} />
+    <View style={styles.safeAreaFill}>
+      <LinearGradient
+        colors={Theme.colors.primaryLinearGradient}
+        style={styles.container}
+      >
+        <StatusBar style="light" translucent={true} />
+        <GestureHandlerRootView style={styles.container}>
+          <SafeAreaProvider>
+            <ErrorBoundary>
+              {/* Loading Overlay */}
+              {isLoading && (
+                <View style={styles.loadingOverlay}>
+                  <ActivityIndicator size="large" color={Theme.colors.white} />
+                  <Text style={styles.loadingText}>Loading your portfolio...</Text>
+                </View>
+              )}
+              <Toast />
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: 'transparent' },
+                  animation: 'slide_from_right',
+                }}
+              >
+                {/* Main App Section */}
+                <Stack.Screen name="(app)" options={{ headerShown: false }} />
 
-              {/* Global Modals - accessible from anywhere */}
-              <Stack.Screen
-                name="deposit"
-                options={{
-                  presentation: 'modal',
-                  animation: 'slide_from_bottom',
-                }}
-              />
-              <Stack.Screen
-                name="accounts/index"
-                options={{
-                  presentation: 'modal',
-                  animation: 'slide_from_bottom',
-                }}
-              />
-              <Stack.Screen
-                name="confirm-trade"
-                options={{
-                  presentation: 'modal',
-                  animation: 'slide_from_bottom',
-                }}
-              />
-              <Stack.Screen
-                name="trade-result"
-                options={{
-                  presentation: 'fullScreenModal',
-                  animation: 'fade',
-                  gestureEnabled: false,
-                }}
-              />
-              <Stack.Screen
-                name="token/[id]"
-                options={{
-                  presentation: 'card',
-                  animation: 'slide_from_bottom',
-                }}
-              />
-              <Stack.Screen
-                name="margin/index"
-                options={{
-                  presentation: 'card',
-                  animation: 'slide_from_right',
-                }}
-              />
-              <Stack.Screen
-                name="margin/new"
-                options={{
-                  presentation: 'modal',
-                  animation: 'slide_from_bottom',
-                }}
-              />
-              <Stack.Screen
-                name="margin/position"
-                options={{
-                  presentation: 'card',
-                  animation: 'slide_from_right',
-                }}
-              />
-            </Stack>
-          </ErrorBoundary>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
-    </LinearGradient>
+                {/* Global Modals - accessible from anywhere */}
+                <Stack.Screen
+                  name="deposit"
+                  options={{
+                    presentation: 'modal',
+                    animation: 'slide_from_bottom',
+                  }}
+                />
+                <Stack.Screen
+                  name="accounts/index"
+                  options={{
+                    presentation: 'modal',
+                    animation: 'slide_from_bottom',
+                  }}
+                />
+                <Stack.Screen
+                  name="confirm-trade"
+                  options={{
+                    presentation: 'modal',
+                    animation: 'slide_from_bottom',
+                  }}
+                />
+                <Stack.Screen
+                  name="trade-result"
+                  options={{
+                    presentation: 'fullScreenModal',
+                    animation: 'fade',
+                    gestureEnabled: false,
+                  }}
+                />
+                <Stack.Screen
+                  name="token/[id]"
+                  options={{
+                    presentation: 'card',
+                    animation: 'slide_from_bottom',
+                  }}
+                />
+                <Stack.Screen
+                  name="margin/index"
+                  options={{
+                    presentation: 'card',
+                    animation: 'slide_from_right',
+                  }}
+                />
+                <Stack.Screen
+                  name="margin/new"
+                  options={{
+                    presentation: 'modal',
+                    animation: 'slide_from_bottom',
+                  }}
+                />
+                <Stack.Screen
+                  name="margin/position"
+                  options={{
+                    presentation: 'card',
+                    animation: 'slide_from_right',
+                  }}
+                />
+              </Stack>
+            </ErrorBoundary>
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  safeAreaFill: {
+    flex: 1,
+    backgroundColor: '#6155AC', // Purple gradient end - fills iOS safe areas
+  },
   container: {
     flex: 1,
     // Ensure gradient fills entire viewport on iOS Safari
@@ -248,13 +254,13 @@ const styles = StyleSheet.create({
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(26, 26, 26, 0.95)',
+    backgroundColor: 'rgba(97, 85, 172, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
   },
   loadingText: {
-    color: Theme.colors.lightGrey,
+    color: Theme.colors.white,
     fontSize: 16,
     marginTop: 16,
   },
