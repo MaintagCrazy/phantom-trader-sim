@@ -41,6 +41,11 @@ interface HoldingWithValue {
   image?: string;
 }
 
+interface PriceCacheRecord {
+  coinId: string;
+  image: string | null;
+}
+
 /**
  * Get portfolio with current values and P&L
  */
@@ -55,6 +60,18 @@ export async function getPortfolioWithValues(userId: string): Promise<PortfolioW
   // Get current prices for all holdings
   const coinIds = portfolio.holdings.map((h: HoldingRecord) => h.coinId);
   const prices = coinIds.length > 0 ? await getSimplePrices(coinIds) : {};
+
+  // Get coin images from priceCache
+  const imageCache: Record<string, string | null> = {};
+  if (coinIds.length > 0) {
+    const cachedCoins = await prisma.priceCache.findMany({
+      where: { coinId: { in: coinIds } },
+      select: { coinId: true, image: true },
+    });
+    cachedCoins.forEach((coin: PriceCacheRecord) => {
+      imageCache[coin.coinId] = coin.image;
+    });
+  }
 
   let totalHoldingsValue = 0;
   let totalCostBasis = 0;
@@ -73,6 +90,9 @@ export async function getPortfolioWithValues(userId: string): Promise<PortfolioW
     totalHoldingsValue += currentValue;
     totalCostBasis += costBasis;
 
+    // Get image from cache
+    const image = imageCache[holding.coinId] || undefined;
+
     return {
       id: holding.id,
       coinId: holding.coinId,
@@ -84,6 +104,7 @@ export async function getPortfolioWithValues(userId: string): Promise<PortfolioW
       currentValue,
       pnl,
       pnlPercent,
+      image,
     };
   });
 
