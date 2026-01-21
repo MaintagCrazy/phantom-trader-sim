@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -31,12 +32,19 @@ export default function TokenDetailPage() {
 
   const { userId } = useUserStore();
   const { portfolio, fetchPortfolio } = usePortfolioStore();
-  const { coins, fetchCoins } = useCoinsStore();
+  const { coins, selectedCoin, fetchCoins, fetchCoin, clearSelectedCoin } = useCoinsStore();
 
   const [refreshing, setRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Find the coin and holding
-  const coin = useMemo(() => coins.find(c => c.id === coinId), [coins, coinId]);
+  // Find the coin from cached list or selected coin
+  const coin = useMemo(() => {
+    // First check selectedCoin (fetched directly)
+    if (selectedCoin?.id === coinId) return selectedCoin;
+    // Then check cached coins list
+    return coins.find(c => c.id === coinId);
+  }, [coins, selectedCoin, coinId]);
+
   const holding = useMemo(
     () => portfolio?.holdings?.find(h => h.coinId === coinId),
     [portfolio, coinId]
@@ -49,6 +57,21 @@ export default function TokenDetailPage() {
   const isPositive = priceChange >= 0;
   const ticker = coin?.symbol?.toUpperCase() || holding?.symbol?.toUpperCase() || '';
   const tokenName = coin?.name || holding?.name || coinId;
+  const coinImage = coin?.image || holding?.image;
+
+  const loadCoinData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // Fetch the specific coin directly
+      await fetchCoin(coinId);
+      // Also refresh the coins list
+      await fetchCoins(1, 50);
+    } catch (error) {
+      console.error('Failed to load coin data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [coinId, fetchCoin, fetchCoins]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -56,15 +79,23 @@ export default function TokenDetailPage() {
       if (userId) {
         await fetchPortfolio(userId);
       }
-      await fetchCoins();
+      await loadCoinData();
     } finally {
       setTimeout(() => setRefreshing(false), 1000);
     }
-  }, [userId, fetchPortfolio, fetchCoins]);
+  }, [userId, fetchPortfolio, loadCoinData]);
 
   useEffect(() => {
-    onRefresh();
-  }, []);
+    loadCoinData();
+    if (userId) {
+      fetchPortfolio(userId);
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      clearSelectedCoin();
+    };
+  }, [coinId]);
 
   // Mock transaction history (in a real app, this would come from an API)
   const transactions = useMemo(() => {
@@ -85,11 +116,19 @@ export default function TokenDetailPage() {
         }
       >
         <View style={styles.contentContainer}>
+          {/* Loading State */}
+          {isLoading && !coin && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={Theme.colors.primary} />
+              <Text style={styles.loadingText}>Loading {coinId}...</Text>
+            </View>
+          )}
+
           {/* Token Icon and Balance */}
           <View style={styles.balanceContainer}>
-            {coin?.image || holding?.image ? (
+            {coinImage ? (
               <Image
-                source={{ uri: coin?.image || holding?.image }}
+                source={{ uri: coinImage }}
                 style={styles.tokenIcon}
               />
             ) : (
@@ -146,15 +185,19 @@ export default function TokenDetailPage() {
             <View style={styles.infoCard}>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Symbol</Text>
-                <Text style={styles.infoValue}>{ticker}</Text>
+                <Text style={styles.infoValue}>{ticker || 'Loading...'}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Current Price</Text>
-                <Text style={styles.infoValue}>{formatDollar(currentPrice)}</Text>
+                <Text style={styles.infoValue}>
+                  {currentPrice > 0 ? formatDollar(currentPrice) : 'Loading...'}
+                </Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Market Cap Rank</Text>
-                <Text style={styles.infoValue}>#{coin?.marketCapRank || 'N/A'}</Text>
+                <Text style={styles.infoValue}>
+                  {coin?.marketCapRank ? `#${coin.marketCapRank}` : 'Loading...'}
+                </Text>
               </View>
               <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
                 <Text style={styles.infoLabel}>Network</Text>
@@ -171,7 +214,7 @@ export default function TokenDetailPage() {
                 <Ionicons name="receipt-outline" size={48} color={Theme.colors.grey} />
                 <Text style={styles.emptyText}>No transactions yet</Text>
                 <Text style={styles.emptySubtext}>
-                  Buy or receive {ticker} to see your transaction history
+                  Buy or receive {ticker || 'this token'} to see your transaction history
                 </Text>
               </View>
             ) : (
@@ -206,14 +249,14 @@ export default function TokenDetailPage() {
             colors={Theme.colors.primaryLinearGradient}
             style={styles.gradientButton}
           >
-            <Text style={styles.buyButtonText}>Buy {ticker}</Text>
+            <Text style={styles.buyButtonText}>Buy {ticker || 'Token'}</Text>
           </LinearGradient>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.sellButton}
           onPress={() => router.push({ pathname: '/swap', params: { mode: 'sell', coinId } })}
         >
-          <Text style={styles.sellButtonText}>Sell {ticker}</Text>
+          <Text style={styles.sellButtonText}>Sell {ticker || 'Token'}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -233,6 +276,16 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     padding: Theme.spacing.medium,
     paddingTop: Platform.OS === 'android' ? 40 : 0,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Theme.spacing.large,
+  },
+  loadingText: {
+    color: Theme.colors.lightGrey,
+    fontSize: Theme.fonts.sizes.normal,
+    marginTop: Theme.spacing.small,
   },
   balanceContainer: {
     alignItems: 'center',
