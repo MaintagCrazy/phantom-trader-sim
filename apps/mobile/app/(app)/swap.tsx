@@ -125,7 +125,13 @@ export default function SwapScreen() {
         style={[styles.coinOption, isSelected && styles.selectedCoin]}
         onPress={() => isFrom ? selectFromCoin(item.id) : selectToCoin(item.id)}
       >
-        <Image source={{ uri: item.image }} style={styles.coinImage} />
+        {item.image ? (
+          <Image source={{ uri: item.image }} style={styles.coinImage} />
+        ) : (
+          <View style={[styles.coinImage, styles.coinImagePlaceholder]}>
+            <Text style={styles.coinImageText}>{item.symbol?.charAt(0).toUpperCase() || '?'}</Text>
+          </View>
+        )}
         <View style={styles.coinInfo}>
           <Text style={styles.coinSymbol}>{item.symbol.toUpperCase()}</Text>
           <Text style={styles.coinName}>{item.name}</Text>
@@ -445,6 +451,16 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     marginRight: Theme.spacing.medium,
+  },
+  coinImagePlaceholder: {
+    backgroundColor: Theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  coinImageText: {
+    color: Theme.colors.white,
+    fontSize: Theme.fonts.sizes.header,
+    fontWeight: '700',
   },
   coinInfo: {
     flex: 1,
