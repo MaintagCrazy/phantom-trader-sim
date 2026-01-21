@@ -52,8 +52,15 @@ export default function DiscoverScreen() {
     });
   };
 
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+
+  const handleImageError = (coinId: string) => {
+    setImageErrors(prev => ({ ...prev, [coinId]: true }));
+  };
+
   const renderCoin = ({ item: coin }: { item: Coin }) => {
     const isPositive = coin.priceChange24h >= 0;
+    const showPlaceholder = !coin.image || imageErrors[coin.id];
 
     return (
       <TouchableOpacity
@@ -61,7 +68,19 @@ export default function DiscoverScreen() {
         onPress={() => handleTokenPress(coin.id)}
         activeOpacity={0.7}
       >
-        <Image source={{ uri: coin.image }} style={styles.tokenImage} />
+        {showPlaceholder ? (
+          <View style={[styles.tokenImage, styles.tokenImagePlaceholder]}>
+            <Text style={styles.tokenImageText}>
+              {coin.symbol?.charAt(0).toUpperCase() || '?'}
+            </Text>
+          </View>
+        ) : (
+          <Image
+            source={{ uri: coin.image }}
+            style={styles.tokenImage}
+            onError={() => handleImageError(coin.id)}
+          />
+        )}
         <View style={styles.tokenInfo}>
           <Text style={styles.tokenName}>{coin.name}</Text>
           <Text style={styles.tokenSymbol}>{coin.symbol.toUpperCase()}</Text>
@@ -271,6 +290,16 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     marginRight: Theme.spacing.medium,
+  },
+  tokenImagePlaceholder: {
+    backgroundColor: Theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tokenImageText: {
+    color: Theme.colors.white,
+    fontSize: Theme.fonts.sizes.header,
+    fontWeight: '700',
   },
   tokenInfo: {
     flex: 1,
