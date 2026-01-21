@@ -103,8 +103,26 @@ export default function TokenDetailPage() {
     return [];
   }, []);
 
+  // Handle back button press
+  const handleBack = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/');
+    }
+  }, []);
+
   return (
     <View style={styles.container}>
+      {/* Header with Back Button */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+          <Ionicons name="chevron-back" size={28} color={Theme.colors.white} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{tokenName}</Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
       <ScrollView
         style={styles.scrollView}
         refreshControl={
@@ -268,6 +286,31 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Theme.colors.dark,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Theme.spacing.medium,
+    paddingTop: Platform.OS === 'ios' ? 50 : 40,
+    paddingBottom: Theme.spacing.small,
+    backgroundColor: Theme.colors.dark,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: Theme.fonts.sizes.large,
+    fontWeight: '700',
+    color: Theme.colors.white,
+    textAlign: 'center',
+    flex: 1,
+  },
+  headerSpacer: {
+    width: 40,
+  },
   scrollView: {
     flex: 1,
   },
@@ -275,7 +318,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     padding: Theme.spacing.medium,
-    paddingTop: Platform.OS === 'android' ? 40 : 0,
+    paddingTop: Theme.spacing.small,
   },
   loadingContainer: {
     alignItems: 'center',
