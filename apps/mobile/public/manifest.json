@@ -1,7 +1,7 @@
 {
-  "name": "Trade Demo",
-  "short_name": "Trade Demo",
-  "description": "Crypto paper trading simulator - Practice trading risk-free",
+  "name": "Phantom Wallet",
+  "short_name": "Phantom",
+  "description": "Your crypto trading platform",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

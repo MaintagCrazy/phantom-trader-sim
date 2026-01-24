@@ -89,11 +89,11 @@ export default function SwapScreen() {
   };
 
   const getFromCoins = (): Coin[] => {
-    if (!portfolio?.holdings) return [];
-    return portfolio.holdings.map(holding => {
-      const coin = coins.find(c => c.id === holding.coinId);
-      return coin ? { ...coin, amount: holding.amount } : null;
-    }).filter(Boolean) as Coin[];
+    // Show all available coins, with holdings amounts if available
+    return coins.map(coin => {
+      const holding = portfolio?.holdings?.find(h => h.coinId === coin.id);
+      return { ...coin, amount: holding?.amount || 0 };
+    });
   };
 
   const getToCoins = (): Coin[] => {

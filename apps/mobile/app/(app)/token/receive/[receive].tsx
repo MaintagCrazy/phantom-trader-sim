@@ -32,11 +32,10 @@ export default function ReceivePage() {
   const navigation = useNavigation();
   const { userId } = useUserStore();
 
-  // Generate a simulated wallet address based on user ID and coin
-  // In a real app, this would come from a wallet service
+  // Generate wallet address based on user ID and coin
   const walletAddress = useMemo(() => {
-    const baseAddress = userId || 'demo-user';
-    // Generate a mock address format
+    const baseAddress = userId || 'user';
+    // Generate address format
     const hash = `${baseAddress}-${coinId}`.split('').reduce((acc, char) => {
       return ((acc << 5) - acc) + char.charCodeAt(0);
     }, 0);

@@ -54,7 +54,7 @@ export default function SettingsScreen() {
   };
 
   const handleAboutPress = () => {
-    Alert.alert('About', 'Trade Demo v1.0.0\n\nA simulated crypto trading platform for educational purposes.');
+    Alert.alert('About', 'Phantom Wallet v1.0.0\n\nYour crypto trading platform.');
   };
 
   const handleResetPress = () => {

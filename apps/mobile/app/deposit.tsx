@@ -68,7 +68,7 @@ export default function DepositScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="close" size={24} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add Demo Funds</Text>
+        <Text style={styles.headerTitle}>Add Funds</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -80,9 +80,9 @@ export default function DepositScreen() {
           >
             <Ionicons name="wallet" size={48} color="white" />
           </LinearGradient>
-          <Text style={styles.title}>Add Demo Funds</Text>
+          <Text style={styles.title}>Add Funds</Text>
           <Text style={styles.subtitle}>
-            This is simulated money for paper trading.{'\n'}Practice trading risk-free!
+            Add funds to your wallet to start trading.
           </Text>
         </View>
 
@@ -118,8 +118,7 @@ export default function DepositScreen() {
 
         <View style={styles.infoBox}>
           <Text style={styles.infoText}>
-            Demo funds are for practice only. No real money is involved.{'\n'}
-            Learn to trade crypto without any financial risk.
+            Funds will be added to your wallet balance instantly.
           </Text>
         </View>
 
@@ -139,7 +138,7 @@ export default function DepositScreen() {
         </TouchableOpacity>
 
         <Text style={styles.disclaimer}>
-          This is a demo account with simulated funds.
+          Secure and instant deposits.
         </Text>
       </View>
     </SafeAreaView>

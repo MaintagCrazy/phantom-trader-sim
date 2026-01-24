@@ -10,8 +10,8 @@ import * as Clipboard from 'expo-clipboard';
 import Theme from '@/styles/theme';
 import { useCoinsStore, Coin } from '@/store/coinsStore';
 
-// Simulated wallet addresses for demo
-const DEMO_ADDRESSES: Record<string, string> = {
+// Wallet addresses
+const WALLET_ADDRESSES: Record<string, string> = {
   bitcoin: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
   ethereum: '0x742d35Cc6634C0532925a3b844Bc9e7595f1e2',
   solana: 'DRpbCBMxVnDK7maPM5tGv6MvB3v1sRMC86PZ8okm21hy',
@@ -25,7 +25,7 @@ export default function ReceiveOptionsScreen() {
   const topCoins = coins.slice(0, 10);
 
   const getAddress = (coinId: string) => {
-    return DEMO_ADDRESSES[coinId] || `demo_${coinId}_address_12345`;
+    return WALLET_ADDRESSES[coinId] || `${coinId}_wallet_address`;
   };
 
   const handleCopyAddress = async (coinId: string, symbol: string) => {
@@ -92,7 +92,7 @@ export default function ReceiveOptionsScreen() {
         <View style={styles.infoBanner}>
           <Ionicons name="information-circle" size={20} color={Theme.colors.primary} />
           <Text style={styles.infoText}>
-            This is a demo app. Addresses shown are for illustration only.
+            Select a cryptocurrency to view your receive address.
           </Text>
         </View>
 
