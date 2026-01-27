@@ -23,7 +23,7 @@ import { useUserStore } from '@/store/userStore';
 import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore } from '@/store/coinsStore';
 import { useAccountsStore } from '@/store/accountsStore';
-import { getTransactions, Transaction, Holding } from '@/services/api';
+import { getTransactions, getMarginPositions, Transaction, Holding, MarginPosition, Coin } from '@/services/api';
 
 // Price update intervals
 const API_REFRESH_INTERVAL = 30000;
@@ -31,8 +31,10 @@ const API_REFRESH_INTERVAL = 30000;
 export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [marginPositions, setMarginPositions] = useState<MarginPosition[]>([]);
   const [isLoadingTx, setIsLoadingTx] = useState(false);
   const [showAssets, setShowAssets] = useState(true);
+  const [showMarket, setShowMarket] = useState(true);
 
   const { userId } = useUserStore();
   const { portfolio, fetchPortfolio } = usePortfolioStore();
@@ -47,13 +49,17 @@ export default function HomeScreen() {
   const holdings = portfolio?.holdings || [];
   const isPositive = totalPnL >= 0;
 
-  // Fetch transactions
+  // Fetch transactions and margin positions
   const fetchUserTransactions = useCallback(async () => {
     if (!userId) return;
     setIsLoadingTx(true);
     try {
-      const data = await getTransactions(userId, 1, 20);
-      setTransactions(data.transactions);
+      const [txData, marginData] = await Promise.all([
+        getTransactions(userId, 1, 20),
+        getMarginPositions(userId).catch(() => ({ positions: [], count: 0 })),
+      ]);
+      setTransactions(txData.transactions);
+      setMarginPositions(marginData.positions.filter((p: MarginPosition) => p.status === 'OPEN'));
     } catch (error) {
       console.error('Failed to fetch transactions:', error);
     } finally {
@@ -111,22 +117,26 @@ export default function HomeScreen() {
   };
 
   // Transaction rendering
-  const getTransactionIcon = (type: Transaction['type']) => {
+  const getTransactionIcon = (type: Transaction['type']): keyof typeof Ionicons.glyphMap => {
     switch (type) {
       case 'DEPOSIT': return 'add-circle';
       case 'BUY': return 'arrow-down-circle';
       case 'SELL': return 'arrow-up-circle';
       case 'SWAP': return 'swap-horizontal';
+      case 'MARGIN_OPEN': return 'trending-up';
+      case 'MARGIN_CLOSE': return 'trending-down';
       default: return 'help-circle';
     }
   };
 
   const getTransactionColor = (type: Transaction['type']) => {
     switch (type) {
-      case 'DEPOSIT': return '#30D158'; // success green
+      case 'DEPOSIT': return '#30D158';
       case 'BUY': return Theme.colors.primary;
       case 'SELL': return Theme.colors.solana;
       case 'SWAP': return Theme.colors.ethereum;
+      case 'MARGIN_OPEN': return '#FF9F0A';
+      case 'MARGIN_CLOSE': return '#FF453A';
       default: return Theme.colors.grey;
     }
   };
@@ -137,6 +147,8 @@ export default function HomeScreen() {
       case 'BUY': return `Bought ${tx.toAmount?.toFixed(4)} ${tx.toSymbol}`;
       case 'SELL': return `Sold ${tx.fromAmount?.toFixed(4)} ${tx.fromSymbol}`;
       case 'SWAP': return `Swapped ${tx.fromSymbol} → ${tx.toSymbol}`;
+      case 'MARGIN_OPEN': return `Opened ${tx.toSymbol} Long $${tx.totalUsdValue.toFixed(0)}`;
+      case 'MARGIN_CLOSE': return `Closed ${tx.fromSymbol || tx.toSymbol} Position`;
       default: return 'Transaction';
     }
   };
@@ -340,12 +352,113 @@ export default function HomeScreen() {
             <AssetCard key={holding.coinId} holding={holding} />
           ))}
 
-          {holdings.length === 0 && cashBalance === 0 && (
+          {/* Margin Positions */}
+          {marginPositions.map((pos) => {
+            const liveCoin = coins.find(c => c.id === pos.coinId);
+            const currentPrice = liveCoin?.currentPrice || pos.entryPrice;
+            const pnl = pos.type === 'LONG'
+              ? (currentPrice - pos.entryPrice) * pos.amount * pos.leverage
+              : (pos.entryPrice - currentPrice) * pos.amount * pos.leverage;
+            const pnlPercent = (pnl / pos.margin) * 100;
+            const isUp = pnl >= 0;
+
+            return (
+              <TouchableOpacity
+                key={pos.id}
+                style={styles.assetCard}
+                onPress={() => router.push(`/token/${pos.coinId}`)}
+                activeOpacity={0.7}
+              >
+                {liveCoin?.image ? (
+                  <Image source={{ uri: liveCoin.image }} style={styles.assetIcon} />
+                ) : (
+                  <View style={[styles.assetIcon, styles.assetIconPlaceholder]}>
+                    <Text style={styles.assetIconText}>{pos.symbol?.charAt(0)}</Text>
+                  </View>
+                )}
+                <View style={styles.assetInfo}>
+                  <Text style={styles.assetName}>{pos.name} {pos.leverage}x {pos.type}</Text>
+                  <Text style={styles.assetAmount}>
+                    Margin: ${pos.margin.toFixed(0)} · Entry: ${pos.entryPrice.toLocaleString()}
+                  </Text>
+                </View>
+                <View style={styles.assetRight}>
+                  <Text style={[styles.assetValue, { color: isUp ? '#30D158' : Theme.colors.accent }]}>
+                    {isUp ? '+' : ''}{formatCurrency(pnl)}
+                  </Text>
+                  <View style={styles.changeRow}>
+                    <Ionicons
+                      name={isUp ? 'arrow-up' : 'arrow-down'}
+                      size={12}
+                      color={isUp ? '#30D158' : Theme.colors.accent}
+                    />
+                    <Text style={[styles.changeText, { color: isUp ? '#30D158' : Theme.colors.accent }]}>
+                      {isUp ? '+' : ''}{pnlPercent.toFixed(2)}%
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+
+          {holdings.length === 0 && marginPositions.length === 0 && cashBalance === 0 && (
             <View style={styles.emptyAssets}>
               <Ionicons name="wallet-outline" size={32} color={Theme.colors.grey} />
               <Text style={styles.emptyAssetsText}>No assets yet</Text>
             </View>
           )}
+        </View>
+      )}
+
+      {/* Top Coins Market Section */}
+      <TouchableOpacity
+        style={styles.sectionHeader}
+        onPress={() => setShowMarket(!showMarket)}
+      >
+        <Text style={styles.sectionTitle}>Top Coins</Text>
+        <TouchableOpacity onPress={() => router.push('/(app)/discover')}>
+          <Text style={styles.seeAllLink}>See all</Text>
+        </TouchableOpacity>
+      </TouchableOpacity>
+
+      {showMarket && coins.length > 0 && (
+        <View style={styles.assetsContainer}>
+          {coins.slice(0, 10).map((coin: Coin) => {
+            const isUp = coin.priceChange24h >= 0;
+            return (
+              <TouchableOpacity
+                key={coin.id}
+                style={styles.assetCard}
+                onPress={() => router.push(`/token/${coin.id}`)}
+                activeOpacity={0.7}
+              >
+                {coin.image ? (
+                  <Image source={{ uri: coin.image }} style={styles.assetIcon} />
+                ) : (
+                  <View style={[styles.assetIcon, styles.assetIconPlaceholder]}>
+                    <Text style={styles.assetIconText}>{coin.symbol?.charAt(0).toUpperCase()}</Text>
+                  </View>
+                )}
+                <View style={styles.assetInfo}>
+                  <Text style={styles.assetName}>{coin.name}</Text>
+                  <Text style={styles.assetAmount}>{coin.symbol.toUpperCase()}</Text>
+                </View>
+                <View style={styles.assetRight}>
+                  <Text style={styles.assetValue}>{formatCurrency(coin.currentPrice)}</Text>
+                  <View style={styles.changeRow}>
+                    <Ionicons
+                      name={isUp ? 'arrow-up' : 'arrow-down'}
+                      size={12}
+                      color={isUp ? '#30D158' : Theme.colors.accent}
+                    />
+                    <Text style={[styles.changeText, { color: isUp ? '#30D158' : Theme.colors.accent }]}>
+                      {isUp ? '+' : ''}{coin.priceChange24h.toFixed(2)}%
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       )}
 

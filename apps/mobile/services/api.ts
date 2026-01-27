@@ -82,7 +82,7 @@ export interface Portfolio {
 
 export interface Transaction {
   id: string;
-  type: 'DEPOSIT' | 'SWAP' | 'BUY' | 'SELL';
+  type: 'DEPOSIT' | 'SWAP' | 'BUY' | 'SELL' | 'MARGIN_OPEN' | 'MARGIN_CLOSE';
   fromCoinId?: string;
   fromSymbol?: string;
   fromAmount?: number;
@@ -93,6 +93,31 @@ export interface Transaction {
   priceAtTime?: number;
   totalUsdValue: number;
   createdAt: string;
+}
+
+export interface MarginPosition {
+  id: string;
+  userId: string;
+  coinId: string;
+  symbol: string;
+  name: string;
+  type: 'LONG' | 'SHORT';
+  leverage: number;
+  entryPrice: number;
+  amount: number;
+  margin: number;
+  liquidationPrice: number;
+  status: 'OPEN' | 'CLOSED';
+  realizedPnl: number | null;
+  closePrice: number | null;
+  createdAt: string;
+  closedAt: string | null;
+}
+
+// Margin positions endpoint
+export async function getMarginPositions(userId: string): Promise<{ positions: MarginPosition[]; count: number }> {
+  const { data } = await api.get('/api/margin/positions', { params: { userId } });
+  return data;
 }
 
 export interface User {
