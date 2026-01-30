@@ -39,9 +39,14 @@ RUN echo "Expo version:" && npx expo --version
 # Export web build
 RUN npx expo export -p web 2>&1 || (echo "Build failed, showing directory:" && ls -la && exit 1)
 
+# Verify build produced JS bundle
+RUN ls -la dist/ && \
+    ls -la dist/_expo/static/js/web/ && \
+    test -f dist/index.html && \
+    grep -q "script.*src.*js" dist/index.html || (echo "ERROR: Build incomplete - no JS bundle reference in index.html" && cat dist/index.html && exit 1)
+
 # Copy PWA assets to dist folder
 RUN cp -r public/* dist/ 2>/dev/null || true
-RUN echo "PWA assets copied. Contents of dist:" && ls -la dist/
 
 # Production stage - serve static files
 FROM node:20-slim
