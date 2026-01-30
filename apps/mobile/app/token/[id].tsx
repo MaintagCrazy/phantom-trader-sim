@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, StyleSheet, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, StyleSheet } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { useUserStore } from '@/store/userStore';
 import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore } from '@/store/coinsStore';
 import PriceChart from '@/components/PriceChart';
+import CoinIcon from '@/components/CoinIcon';
 
 const TIMEFRAMES = ['1', '7', '30', '90', '365'];
 const TIMEFRAME_LABELS = ['24H', '7D', '30D', '90D', '1Y'];
@@ -181,7 +182,7 @@ export default function TokenDetailScreen() {
           <Ionicons name="chevron-back" size={24} color="white" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          {coin.image && <Image source={{ uri: coin.image }} style={styles.headerLogo} />}
+          <CoinIcon uri={coin.image} symbol={coin.symbol} size={24} style={{ marginRight: 8 }} />
           <Text style={styles.headerTitle}>{coin.name}</Text>
         </View>
         <View style={styles.placeholder} />

@@ -1,13 +1,14 @@
 // BMO Wallet Style Swap Screen
 // Modal presentation with gradient background
 
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, StyleSheet, Modal, FlatList, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, StyleSheet, Modal, FlatList } from 'react-native';
 import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Theme from '@/styles/theme';
+import CoinIcon from '@/components/CoinIcon';
 import { useUserStore } from '@/store/userStore';
 import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore, Coin } from '@/store/coinsStore';
@@ -125,13 +126,7 @@ export default function SwapScreen() {
         style={[styles.coinOption, isSelected && styles.selectedCoin]}
         onPress={() => isFrom ? selectFromCoin(item.id) : selectToCoin(item.id)}
       >
-        {item.image ? (
-          <Image source={{ uri: item.image }} style={styles.coinImage} />
-        ) : (
-          <View style={[styles.coinImage, styles.coinImagePlaceholder]}>
-            <Text style={styles.coinImageText}>{item.symbol?.charAt(0).toUpperCase() || '?'}</Text>
-          </View>
-        )}
+        <CoinIcon uri={item.image} symbol={item.symbol} size={44} style={{ marginRight: Theme.spacing.medium }} />
         <View style={styles.coinInfo}>
           <Text style={styles.coinSymbol}>{item.symbol.toUpperCase()}</Text>
           <Text style={styles.coinName}>{item.name}</Text>

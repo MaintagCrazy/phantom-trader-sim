@@ -3,7 +3,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Image,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef } from 'react';
 import { Animated, Easing } from 'react-native';
+import CoinIcon from '@/components/CoinIcon';
 
 export default function TradeResultScreen() {
   const router = useRouter();
@@ -127,9 +127,7 @@ export default function TradeResultScreen() {
           {success && (
             <View style={styles.detailsContainer}>
               <View style={styles.coinRow}>
-                {params.coinImage && (
-                  <Image source={{ uri: params.coinImage }} style={styles.coinImage} />
-                )}
+                <CoinIcon uri={params.coinImage} symbol={params.coinSymbol} size={32} style={{ marginRight: 8 }} />
                 <Text style={styles.coinName}>{params.coinName}</Text>
               </View>
 

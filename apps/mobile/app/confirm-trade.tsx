@@ -3,7 +3,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Image,
   ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -13,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { useUserStore } from '@/store/userStore';
 import { usePortfolioStore } from '@/store/portfolioStore';
+import CoinIcon from '@/components/CoinIcon';
 
 export default function ConfirmTradeScreen() {
   const router = useRouter();
@@ -133,9 +133,7 @@ export default function ConfirmTradeScreen() {
       <View style={styles.content}>
         {/* Coin Info */}
         <View style={styles.coinSection}>
-          {params.coinImage && (
-            <Image source={{ uri: params.coinImage }} style={styles.coinImage} />
-          )}
+          <CoinIcon uri={params.coinImage} symbol={params.coinSymbol} size={72} style={{ marginBottom: 16 }} />
           <Text style={styles.actionText}>
             {isBuying ? 'Buying' : 'Selling'} {params.coinName}
           </Text>

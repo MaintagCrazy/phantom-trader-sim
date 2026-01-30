@@ -8,7 +8,6 @@ import {
   TextInput,
   StyleSheet,
   Platform,
-  Image,
   TouchableOpacity,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -16,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Theme from '@/styles/theme';
+import CoinIcon from '@/components/CoinIcon';
 import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore } from '@/store/coinsStore';
 import { capitalizeFirstLetter } from '@/utils/capitalizeFirstLetter';
@@ -114,16 +114,7 @@ export default function SendPage() {
       <View style={styles.contentContainer}>
         {/* Token Icon */}
         <View style={styles.iconView}>
-          {tokenImage ? (
-            <Image source={{ uri: tokenImage }} style={styles.tokenIcon} />
-          ) : (
-            <LinearGradient
-              colors={Theme.colors.primaryLinearGradient}
-              style={styles.iconBackground}
-            >
-              <Text style={styles.iconText}>{ticker?.charAt(0)}</Text>
-            </LinearGradient>
-          )}
+          <CoinIcon uri={tokenImage} symbol={ticker || '?'} size={64} />
         </View>
 
         {/* Form */}

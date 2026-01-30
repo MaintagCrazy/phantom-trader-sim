@@ -2,12 +2,13 @@
 // Draggable sheet showing crypto holdings
 
 import React, { forwardRef, useCallback, useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import BottomSheet, { BottomSheetFlatList, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Theme from '@/styles/theme';
+import CoinIcon from '@/components/CoinIcon';
 import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore, Coin } from '@/store/coinsStore';
 import { Holding } from '@/services/api';
@@ -70,15 +71,7 @@ const AssetBottomSheet = forwardRef<BottomSheet, AssetBottomSheetProps>(
           activeOpacity={0.7}
         >
           <View style={styles.assetLeft}>
-            {holding.image ? (
-              <Image source={{ uri: holding.image }} style={styles.assetIcon} />
-            ) : (
-              <View style={[styles.assetIcon, styles.assetIconPlaceholder]}>
-                <Text style={styles.assetIconText}>
-                  {holding.symbol?.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-            )}
+            <CoinIcon uri={holding.image} symbol={holding.symbol} size={44} style={{ marginRight: Theme.spacing.medium }} />
             <View style={styles.assetInfo}>
               <Text style={styles.assetName}>{holding.name || holding.coinId}</Text>
               <Text style={styles.assetAmount}>

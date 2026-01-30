@@ -1,13 +1,14 @@
 // BMO Wallet Style Receive Options Modal
 // Show wallet address / QR for receiving
 
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, Image, Alert, Share } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert, Share } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
 import Theme from '@/styles/theme';
+import CoinIcon from '@/components/CoinIcon';
 import { useCoinsStore, Coin } from '@/store/coinsStore';
 
 // Wallet addresses
@@ -56,7 +57,7 @@ export default function ReceiveOptionsScreen() {
       onPress={() => handleSelectCoin(coin)}
       activeOpacity={0.7}
     >
-      <Image source={{ uri: coin.image }} style={styles.coinIcon} />
+      <CoinIcon uri={coin.image} symbol={coin.symbol} size={44} style={{ marginRight: Theme.spacing.medium }} />
       <View style={styles.coinInfo}>
         <Text style={styles.coinName}>{coin.name}</Text>
         <Text style={styles.coinSymbol}>{coin.symbol.toUpperCase()}</Text>

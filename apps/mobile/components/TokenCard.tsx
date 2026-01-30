@@ -1,6 +1,7 @@
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import CoinIcon from '@/components/CoinIcon';
 
 interface TokenCardProps {
   id: string;
@@ -70,15 +71,7 @@ export function TokenCard({
     >
       {/* Token Logo */}
       <View style={styles.logoContainer}>
-        {image ? (
-          <Image source={{ uri: image }} style={styles.logo} />
-        ) : (
-          <View style={styles.logoPlaceholder}>
-            <Text style={styles.logoPlaceholderText}>
-              {symbol.charAt(0).toUpperCase()}
-            </Text>
-          </View>
-        )}
+        <CoinIcon uri={image} symbol={symbol} size={44} />
       </View>
 
       {/* Token Info */}

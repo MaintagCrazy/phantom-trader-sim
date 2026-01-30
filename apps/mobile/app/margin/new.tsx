@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   TextInput,
   StyleSheet,
-  Image,
   Alert,
   ActivityIndicator,
 } from 'react-native';
@@ -19,6 +18,7 @@ import { useAccountsStore } from '@/store/accountsStore';
 import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore } from '@/store/coinsStore';
 import { useMarginStore, LeverageLevel, PositionType } from '@/store/marginStore';
+import CoinIcon from '@/components/CoinIcon';
 
 export default function NewPositionScreen() {
   const router = useRouter();
@@ -144,9 +144,7 @@ export default function NewPositionScreen() {
                 ]}
                 onPress={() => setSelectedCoin(c.id)}
               >
-                {c.image && (
-                  <Image source={{ uri: c.image }} style={styles.coinChipImage} />
-                )}
+                <CoinIcon uri={c.image} symbol={c.symbol} size={24} />
                 <Text style={[
                   styles.coinChipText,
                   selectedCoin === c.id && styles.coinChipTextActive
@@ -162,9 +160,7 @@ export default function NewPositionScreen() {
         {coin && (
           <View style={styles.priceCard}>
             <View style={styles.priceLeft}>
-              {coin.image && (
-                <Image source={{ uri: coin.image }} style={styles.priceImage} />
-              )}
+              <CoinIcon uri={coin.image} symbol={coin.symbol} size={40} style={{ marginRight: 12 }} />
               <View>
                 <Text style={styles.priceName}>{coin.name}</Text>
                 <Text style={styles.priceSymbol}>{coin.symbol.toUpperCase()}</Text>

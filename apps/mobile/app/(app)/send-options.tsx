@@ -1,12 +1,13 @@
 // BMO Wallet Style Send Options Modal
 // Choose which asset to send
 
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Theme from '@/styles/theme';
+import CoinIcon from '@/components/CoinIcon';
 import { usePortfolioStore } from '@/store/portfolioStore';
 import { useCoinsStore } from '@/store/coinsStore';
 
@@ -42,13 +43,7 @@ export default function SendOptionsScreen() {
         onPress={() => handleSelectAsset(item.coinId)}
         activeOpacity={0.7}
       >
-        {item.image ? (
-          <Image source={{ uri: item.image }} style={styles.assetIcon} />
-        ) : (
-          <View style={[styles.assetIcon, styles.assetIconPlaceholder]}>
-            <Text style={styles.assetIconText}>{item.symbol?.charAt(0).toUpperCase()}</Text>
-          </View>
-        )}
+        <CoinIcon uri={item.image} symbol={item.symbol} size={48} style={{ marginRight: Theme.spacing.medium }} />
         <View style={styles.assetInfo}>
           <Text style={styles.assetName}>{item.name || item.coinId}</Text>
           <Text style={styles.assetAmount}>

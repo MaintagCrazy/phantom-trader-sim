@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BMOHeader from '@/components/BMOHeader';
+import CoinIcon from '@/components/CoinIcon';
 import Theme from '@/styles/theme';
 import { useUserStore } from '@/store/userStore';
 import { usePortfolioStore } from '@/store/portfolioStore';
@@ -183,15 +184,7 @@ export default function HomeScreen() {
         onPress={() => router.push(`/token/${holding.coinId}`)}
         activeOpacity={0.7}
       >
-        {coinImage ? (
-          <Image source={{ uri: coinImage }} style={styles.assetIcon} />
-        ) : (
-          <View style={[styles.assetIcon, styles.assetIconPlaceholder]}>
-            <Text style={styles.assetIconText}>
-              {holding.symbol?.charAt(0).toUpperCase()}
-            </Text>
-          </View>
-        )}
+        <CoinIcon uri={coinImage} symbol={holding.symbol} size={44} />
         <View style={styles.assetInfo}>
           <Text style={styles.assetName}>{holding.name || holding.coinId}</Text>
           <Text style={styles.assetAmount}>
@@ -369,13 +362,7 @@ export default function HomeScreen() {
                 onPress={() => router.push(`/token/${pos.coinId}`)}
                 activeOpacity={0.7}
               >
-                {liveCoin?.image ? (
-                  <Image source={{ uri: liveCoin.image }} style={styles.assetIcon} />
-                ) : (
-                  <View style={[styles.assetIcon, styles.assetIconPlaceholder]}>
-                    <Text style={styles.assetIconText}>{pos.symbol?.charAt(0)}</Text>
-                  </View>
-                )}
+                <CoinIcon uri={liveCoin?.image} symbol={pos.symbol} size={44} />
                 <View style={styles.assetInfo}>
                   <Text style={styles.assetName}>{pos.name} {pos.leverage}x {pos.type}</Text>
                   <Text style={styles.assetAmount}>
@@ -432,13 +419,7 @@ export default function HomeScreen() {
                 onPress={() => router.push(`/token/${coin.id}`)}
                 activeOpacity={0.7}
               >
-                {coin.image ? (
-                  <Image source={{ uri: coin.image }} style={styles.assetIcon} />
-                ) : (
-                  <View style={[styles.assetIcon, styles.assetIconPlaceholder]}>
-                    <Text style={styles.assetIconText}>{coin.symbol?.charAt(0).toUpperCase()}</Text>
-                  </View>
-                )}
+                <CoinIcon uri={coin.image} symbol={coin.symbol} size={44} />
                 <View style={styles.assetInfo}>
                   <Text style={styles.assetName}>{coin.name}</Text>
                   <Text style={styles.assetAmount}>{coin.symbol.toUpperCase()}</Text>
