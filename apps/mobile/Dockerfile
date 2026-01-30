@@ -48,13 +48,14 @@ FROM node:20-slim
 
 WORKDIR /app
 
-# Install serve to host static files
-RUN npm install -g serve
+# Install express for serving static files
+RUN npm install express
 
-# Copy the built web files
+# Copy the built web files and server
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/server.js ./server.js
 
 EXPOSE 3000
 
-# Serve uses 0.0.0.0:3000 by default (no -l flag)
-CMD ["serve", "-s", "dist"]
+# Run express server
+CMD ["node", "server.js"]
