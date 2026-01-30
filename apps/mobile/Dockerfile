@@ -10,15 +10,18 @@ RUN apt-get update && apt-get install -y \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy package files
-COPY package.json package-lock.json* ./
+# Railway runs Docker from repo root, so we need to handle both cases
+# Check if we're in a monorepo (apps/mobile exists) or directly in mobile dir
+
+# Copy the mobile app package files first
+COPY apps/mobile/package.json apps/mobile/package-lock.json* ./
 
 # Install dependencies (clean install)
 RUN npm cache clean --force
 RUN npm ci --legacy-peer-deps || npm install
 
-# Copy source files
-COPY . .
+# Copy mobile app source files
+COPY apps/mobile/ .
 
 # Build the web export (production mode)
 ENV NODE_ENV=production
@@ -34,6 +37,7 @@ RUN rm -rf dist .expo node_modules/.cache
 # Show what we're building with
 RUN echo "Node version:" && node --version
 RUN echo "NPM version:" && npm --version
+RUN echo "Building from directory:" && pwd && ls -la
 RUN echo "Expo version:" && npx expo --version
 
 # Export web build
