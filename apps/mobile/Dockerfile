@@ -45,8 +45,8 @@ RUN ls -la dist/ && \
     test -f dist/index.html && \
     grep -q "script.*src.*js" dist/index.html || (echo "ERROR: Build incomplete - no JS bundle reference in index.html" && cat dist/index.html && exit 1)
 
-# Copy PWA assets to dist folder
-RUN cp -r public/* dist/ 2>/dev/null || true
+# Copy PWA assets to dist folder BUT NOT index.html (expo generates that)
+RUN find public -type f ! -name 'index.html' -exec cp {} dist/ \; 2>/dev/null || true
 
 # Production stage - serve static files
 FROM node:20-slim
