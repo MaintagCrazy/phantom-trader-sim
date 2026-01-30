@@ -117,7 +117,7 @@ export default function SettingsScreen() {
             <SettingsItem
               icon="cash-outline"
               title="Currency"
-              subtitle="USD"
+              subtitle="USDT"
               onPress={handleCurrencyPress}
             />
           </View>

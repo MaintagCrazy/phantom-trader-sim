@@ -191,7 +191,7 @@ export default function ConfirmTradeScreen() {
         {/* Fee notice */}
         <Text style={styles.feeNotice}>
           <Ionicons name="information-circle-outline" size={14} color="#8E8E93" />
-          {' '}No fees on simulated trades
+          {' '}No trading fees
         </Text>
       </View>
 

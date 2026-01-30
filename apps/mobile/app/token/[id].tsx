@@ -280,7 +280,7 @@ export default function TokenDetailScreen() {
           </View>
 
           <View style={styles.amountInputCard}>
-            <Text style={styles.amountInputLabel}>{isBuying ? 'You Pay (USD)' : 'You Sell (USD value)'}</Text>
+            <Text style={styles.amountInputLabel}>{isBuying ? 'You Pay (USDT)' : 'You Receive (USDT)'}</Text>
             <View style={styles.amountInputRow}>
               <Text style={styles.dollarSign}>$</Text>
               <TextInput
@@ -302,7 +302,7 @@ export default function TokenDetailScreen() {
 
           <View style={styles.availableRow}>
             <Text style={styles.availableLabel}>
-              {isBuying ? 'Available Cash' : 'Available to Sell'}
+              {isBuying ? 'Available USDT' : 'Available to Sell'}
             </Text>
             <Text style={styles.availableValue}>
               {isBuying

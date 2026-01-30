@@ -87,7 +87,7 @@ export default function DepositScreen() {
         </View>
 
         <View style={styles.inputCard}>
-          <Text style={styles.inputLabel}>Enter Amount (USD)</Text>
+          <Text style={styles.inputLabel}>Enter Amount (USDT)</Text>
           <View style={styles.inputRow}>
             <Text style={styles.dollarSign}>$</Text>
             <TextInput

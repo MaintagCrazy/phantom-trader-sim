@@ -333,7 +333,7 @@ export default function HomeScreen() {
                 <Text style={styles.cashIconText}>$</Text>
               </LinearGradient>
               <View style={styles.assetInfo}>
-                <Text style={styles.assetName}>USD Cash</Text>
+                <Text style={styles.assetName}>USDT</Text>
                 <Text style={styles.assetAmount}>Available to trade</Text>
               </View>
               <Text style={styles.assetValue}>{formatCurrency(cashBalance)}</Text>
