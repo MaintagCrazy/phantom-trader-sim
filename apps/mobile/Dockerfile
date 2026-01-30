@@ -54,7 +54,9 @@ RUN npm install -g serve
 # Copy the built web files
 COPY --from=builder /app/dist ./dist
 
-EXPOSE 8081
+# Use Railway's PORT env variable (defaults to 8080)
+ENV PORT=8080
+EXPOSE 8080
 
-# Serve the static web build on all interfaces (0.0.0.0)
-CMD ["serve", "-s", "dist", "-l", "tcp://0.0.0.0:8081"]
+# Serve on all interfaces using PORT variable
+CMD sh -c "serve -s dist -l tcp://0.0.0.0:$PORT"
