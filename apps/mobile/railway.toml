@@ -7,3 +7,6 @@ healthcheckPath = "/"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
+
+# Railway uses PORT env variable - this tells Railway which port to use
+numReplicas = 1
