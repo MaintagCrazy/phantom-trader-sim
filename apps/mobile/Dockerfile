@@ -54,7 +54,7 @@ RUN npm install -g serve
 # Copy the built web files
 COPY --from=builder /app/dist ./dist
 
-EXPOSE 8081
+EXPOSE 3000
 
-# Serve the static web build
-CMD ["serve", "-s", "dist", "-l", "8081"]
+# Serve uses 0.0.0.0:3000 by default (no -l flag)
+CMD ["serve", "-s", "dist"]
