@@ -37,12 +37,16 @@ RUN echo "NPM version:" && npm --version
 RUN echo "Building from directory:" && pwd && ls -la app.json
 RUN echo "Expo version:" && npx expo --version
 
-# Export web build
-RUN npx expo export -p web 2>&1 || (echo "Build failed, showing directory:" && ls -la && exit 1)
+# Export web build with verbose output
+RUN npx expo export -p web --dump-sourcemap 2>&1 && \
+    echo "=== Export complete. Checking output ===" && \
+    echo "Root directory:" && ls -la && \
+    echo "Dist directory:" && ls -la dist/ && \
+    echo "Dist subdirectories:" && find dist -type f | head -20
 
 # Copy PWA assets to dist folder
 RUN cp -r public/* dist/ 2>/dev/null || true
-RUN echo "PWA assets copied. Contents of dist:" && ls -la dist/
+RUN echo "Final dist contents:" && find dist -type f | head -30
 
 # Production stage - serve static files
 FROM node:20-slim
