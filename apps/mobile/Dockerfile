@@ -55,7 +55,8 @@ RUN npm install express
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server.js ./server.js
 
-EXPOSE 3000
+# Railway sets PORT=8080 by default
+EXPOSE 8080
 
 # Run express server
 CMD ["node", "server.js"]
