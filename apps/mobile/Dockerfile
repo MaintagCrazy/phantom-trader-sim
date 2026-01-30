@@ -3,55 +3,58 @@ FROM node:20-slim AS builder
 
 WORKDIR /app
 
-# Install build dependencies
+# Install dependencies for canvas/native modules if needed
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
-    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Install ALL dependencies (devDependencies needed for build)
-RUN npm install --legacy-peer-deps
+# Install dependencies (clean install)
+RUN npm cache clean --force
+RUN npm ci --legacy-peer-deps || npm install
 
 # Copy source files
 COPY . .
 
-# API URL for production
-ARG EXPO_PUBLIC_API_URL=https://api-production-ae87.up.railway.app
-ENV EXPO_PUBLIC_API_URL=$EXPO_PUBLIC_API_URL
-
-# Clear any cached builds
-RUN rm -rf dist .expo node_modules/.cache
-
-# Build the web export
+# Build the web export (production mode)
 ENV NODE_ENV=production
 ENV EXPO_NO_DOTENV=1
 
-RUN npx expo export -p web
+# API URL for production - passed as build arg or use Railway internal networking
+ARG EXPO_PUBLIC_API_URL=https://api-production-ae87.up.railway.app
+ENV EXPO_PUBLIC_API_URL=$EXPO_PUBLIC_API_URL
 
-# Copy PWA assets
+# Clear ALL cached builds
+RUN rm -rf dist .expo node_modules/.cache
+
+# Show what we're building with
+RUN echo "Node version:" && node --version
+RUN echo "NPM version:" && npm --version
+RUN echo "Expo version:" && npx expo --version
+
+# Export web build
+RUN npx expo export -p web 2>&1 || (echo "Build failed, showing directory:" && ls -la && exit 1)
+
+# Copy PWA assets to dist folder
 RUN cp -r public/* dist/ 2>/dev/null || true
+RUN echo "PWA assets copied. Contents of dist:" && ls -la dist/
 
-# Verify build succeeded
-RUN test -f dist/index.html || (echo "ERROR: Build failed - no index.html" && exit 1)
-
-# Production stage - minimal image
+# Production stage - serve static files
 FROM node:20-slim
 
 WORKDIR /app
 
-# Copy built files and server
+# Install serve to host static files
+RUN npm install -g serve
+
+# Copy the built web files
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/server.js ./server.js
 
-# Railway sets PORT env variable
-ENV PORT=8080
+EXPOSE 8081
 
-EXPOSE 8080
-
-# Run the server directly with Node - guaranteed to bind to 0.0.0.0
-CMD ["node", "server.js"]
+# Serve the static web build
+CMD ["serve", "-s", "dist", "-l", "8081"]
