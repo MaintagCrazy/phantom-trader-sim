@@ -56,5 +56,5 @@ COPY --from=builder /app/dist ./dist
 
 EXPOSE 8081
 
-# Serve the static web build
-CMD ["serve", "-s", "dist", "-l", "8081"]
+# Serve the static web build on all interfaces (0.0.0.0)
+CMD ["serve", "-s", "dist", "-l", "tcp://0.0.0.0:8081"]
