@@ -184,7 +184,7 @@ export default function HomeScreen() {
         onPress={() => router.push(`/token/${holding.coinId}`)}
         activeOpacity={0.7}
       >
-        <CoinIcon uri={coinImage} symbol={holding.symbol} size={44} />
+        <CoinIcon uri={coinImage} symbol={holding.symbol} size={44} style={{ marginRight: 12 }} />
         <View style={styles.assetInfo}>
           <Text style={styles.assetName}>{holding.name || holding.coinId}</Text>
           <Text style={styles.assetAmount}>
@@ -362,7 +362,7 @@ export default function HomeScreen() {
                 onPress={() => router.push(`/token/${pos.coinId}`)}
                 activeOpacity={0.7}
               >
-                <CoinIcon uri={liveCoin?.image} symbol={pos.symbol} size={44} />
+                <CoinIcon uri={liveCoin?.image} symbol={pos.symbol} size={44} style={{ marginRight: 12 }} />
                 <View style={styles.assetInfo}>
                   <Text style={styles.assetName}>{pos.name} {pos.leverage}x {pos.type}</Text>
                   <Text style={styles.assetAmount}>
@@ -419,7 +419,7 @@ export default function HomeScreen() {
                 onPress={() => router.push(`/token/${coin.id}`)}
                 activeOpacity={0.7}
               >
-                <CoinIcon uri={coin.image} symbol={coin.symbol} size={44} />
+                <CoinIcon uri={coin.image} symbol={coin.symbol} size={44} style={{ marginRight: 12 }} />
                 <View style={styles.assetInfo}>
                   <Text style={styles.assetName}>{coin.name}</Text>
                   <Text style={styles.assetAmount}>{coin.symbol.toUpperCase()}</Text>
