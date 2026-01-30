@@ -39,21 +39,19 @@ RUN cp -r public/* dist/ 2>/dev/null || true
 # Verify build succeeded
 RUN test -f dist/index.html || (echo "ERROR: Build failed - no index.html" && exit 1)
 
-# Production stage
+# Production stage - minimal image
 FROM node:20-slim
 
 WORKDIR /app
 
-# Install serve globally
-RUN npm install -g serve
-
-# Copy built files from builder
+# Copy built files and server
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/server.js ./server.js
 
 # Railway sets PORT env variable
 ENV PORT=8080
 
 EXPOSE 8080
 
-# Listen on 0.0.0.0 (all interfaces) - required for Railway to route traffic
-CMD serve -s dist -l tcp://0.0.0.0:$PORT
+# Run the server directly with Node - guaranteed to bind to 0.0.0.0
+CMD ["node", "server.js"]
