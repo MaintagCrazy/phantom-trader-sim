@@ -39,9 +39,19 @@ const fixWebBackgrounds = () => {
       document.head.appendChild(statusBarMeta);
     }
 
-    // Set HTML and body background to dark gradient end color
-    document.documentElement.style.backgroundColor = '#262626';
-    document.body.style.backgroundColor = '#262626';
+    // Set HTML and body background to dark color
+    document.documentElement.style.backgroundColor = '#131314';
+    document.body.style.backgroundColor = '#131314';
+
+    // Ensure full viewport height on mobile
+    document.documentElement.style.height = '100dvh';
+    document.body.style.height = '100dvh';
+    document.body.style.position = 'fixed';
+    document.body.style.top = '0';
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.bottom = '0';
+    document.body.style.overflow = 'hidden';
 
     const fixBackgrounds = () => {
       document.querySelectorAll('*').forEach((el: Element) => {
@@ -243,13 +253,23 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   safeAreaFill: {
     flex: 1,
-    backgroundColor: '#262626', // Dark gradient end - fills iOS safe areas
+    backgroundColor: '#131314', // Dark background - fills iOS safe areas
+    ...(Platform.OS === 'web' ? {
+      position: 'fixed' as any,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: '100dvh',
+      width: '100%',
+    } : {}),
   },
   container: {
     flex: 1,
-    // Ensure gradient fills entire viewport on iOS Safari
+    // Ensure gradient fills entire viewport on mobile web
     ...(Platform.OS === 'web' ? {
-      minHeight: '100%',
+      height: '100%',
+      minHeight: '100dvh',
     } : {}),
   },
   loadingOverlay: {

@@ -7,8 +7,8 @@ const Theme = {
   colors: {
     // Exact BMO Wallet colors
     primary: "#8878F4",
-    dark: "#1A1A1A",
-    lightDark: "#262626",
+    dark: "#131314",
+    lightDark: "#1C1C1E",
     accent: "#F97068",
     background: "#EDF2EF",
     highlight: "#D1D646",
@@ -23,7 +23,7 @@ const Theme = {
     warning: "#FFD60A",
     // Gradients
     primaryLinearGradient: ["#8878F4", "#6155AC"] as const,
-    secondaryLinearGradient: ["#1A1A1A", "#262626"] as const,
+    secondaryLinearGradient: ["#131314", "#131314"] as const,
   },
   fonts: {
     families: {
