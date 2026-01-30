@@ -50,11 +50,10 @@ RUN npm install -g serve
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
 
-# Railway sets PORT env variable automatically (default 3000)
-# We need to use $PORT, not a hardcoded value
+# Railway sets PORT env variable
 ENV PORT=8080
 
 EXPOSE 8080
 
-# Use shell form to expand $PORT variable
-CMD serve -s dist -l $PORT
+# Listen on 0.0.0.0 (all interfaces) - required for Railway to route traffic
+CMD serve -s dist -l tcp://0.0.0.0:$PORT
