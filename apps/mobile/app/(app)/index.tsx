@@ -1,18 +1,17 @@
 // BMO Wallet Style Home Screen
 // Balance + Action Buttons + Transaction List + Assets Section
 
-import React, { useEffect, useCallback, useState, useRef } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
   RefreshControl,
   Platform,
   Image,
   ActivityIndicator,
-  Animated,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
