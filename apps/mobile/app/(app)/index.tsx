@@ -1,7 +1,7 @@
 // BMO Wallet Style Home Screen
 // Balance + Action Buttons + Transaction List + Assets Section
 
-import React, { useEffect, useCallback, useState, useRef } from 'react';
+import React, { useEffect, useCallback, useState, useRef, memo, useMemo } from 'react';
 import {
   View,
   Text,
@@ -34,6 +34,123 @@ const API_REFRESH_INTERVAL = 30000;
 
 // Pull-to-refresh threshold
 const PULL_THRESHOLD = 80;
+
+// Stable style for CoinIcon - defined outside to prevent re-renders
+const coinIconStyle = { marginRight: 12 };
+
+// Helper functions - defined outside component
+const formatCurrency = (value: number) => {
+  return value.toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+const formatTimeAgo = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+// Memoized Asset Card - defined OUTSIDE main component
+interface AssetCardProps {
+  holding: Holding;
+  currentPrice: number;
+  priceChange: number;
+  coinImage?: string;
+}
+
+const AssetCard = memo(({ holding, currentPrice, priceChange, coinImage }: AssetCardProps) => {
+  const currentValue = holding.amount * currentPrice;
+  const isUp = priceChange >= 0;
+
+  return (
+    <TouchableOpacity
+      style={styles.assetCard}
+      onPress={() => router.push(`/token/${holding.coinId}`)}
+      activeOpacity={0.7}
+    >
+      <CoinIcon uri={coinImage} symbol={holding.symbol} size={44} style={coinIconStyle} />
+      <View style={styles.assetInfo}>
+        <Text style={styles.assetName}>{holding.name || holding.coinId}</Text>
+        <Text style={styles.assetAmount}>
+          {holding.amount.toFixed(4)} {holding.symbol?.toUpperCase()}
+        </Text>
+      </View>
+      <View style={styles.assetRight}>
+        <Text style={styles.assetValue}>{formatCurrency(currentValue)}</Text>
+        <View style={styles.changeRow}>
+          <Ionicons
+            name={isUp ? 'arrow-up' : 'arrow-down'}
+            size={12}
+            color={isUp ? '#30D158' : Theme.colors.accent}
+          />
+          <Text style={[styles.changeText, { color: isUp ? '#30D158' : Theme.colors.accent }]}>
+            {isUp ? '+' : ''}{priceChange.toFixed(2)}%
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}, (prev, next) => {
+  // Only re-render if these specific values change
+  return prev.holding.coinId === next.holding.coinId &&
+         prev.holding.amount === next.holding.amount &&
+         prev.currentPrice === next.currentPrice &&
+         prev.priceChange === next.priceChange &&
+         prev.coinImage === next.coinImage;
+});
+
+// Memoized Market Coin Card
+interface MarketCoinCardProps {
+  coin: Coin;
+}
+
+const MarketCoinCard = memo(({ coin }: MarketCoinCardProps) => {
+  const isUp = coin.priceChange24h >= 0;
+
+  return (
+    <TouchableOpacity
+      style={styles.assetCard}
+      onPress={() => router.push(`/token/${coin.id}`)}
+      activeOpacity={0.7}
+    >
+      <CoinIcon uri={coin.image} symbol={coin.symbol} size={44} style={coinIconStyle} />
+      <View style={styles.assetInfo}>
+        <Text style={styles.assetName}>{coin.name}</Text>
+        <Text style={styles.assetAmount}>{coin.symbol.toUpperCase()}</Text>
+      </View>
+      <View style={styles.assetRight}>
+        <Text style={styles.assetValue}>{formatCurrency(coin.currentPrice)}</Text>
+        <View style={styles.changeRow}>
+          <Ionicons
+            name={isUp ? 'arrow-up' : 'arrow-down'}
+            size={12}
+            color={isUp ? '#30D158' : Theme.colors.accent}
+          />
+          <Text style={[styles.changeText, { color: isUp ? '#30D158' : Theme.colors.accent }]}>
+            {isUp ? '+' : ''}{coin.priceChange24h.toFixed(2)}%
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}, (prev, next) => {
+  return prev.coin.id === next.coin.id &&
+         prev.coin.currentPrice === next.coin.currentPrice &&
+         prev.coin.priceChange24h === next.coin.priceChange24h;
+});
 
 export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
@@ -72,6 +189,13 @@ export default function HomeScreen() {
   const cashBalance = portfolio?.cashBalance || 0;
   const holdings = portfolio?.holdings || [];
   const isPositive = totalPnL >= 0;
+
+  // Create a stable coin lookup map
+  const coinMap = useMemo(() => {
+    const map = new Map<string, Coin>();
+    coins.forEach(c => map.set(c.id, c));
+    return map;
+  }, [coins]);
 
   // Set stable total value on initial load and manual refresh
   useEffect(() => {
@@ -232,15 +356,6 @@ export default function HomeScreen() {
     isAtTop.current = offsetY <= 5; // Small threshold for better detection
   }, []);
 
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  };
-
   // Transaction rendering
   const getTransactionIcon = (type: Transaction['type']): keyof typeof Ionicons.glyphMap => {
     switch (type) {
@@ -278,75 +393,6 @@ export default function HomeScreen() {
     }
   };
 
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
-
-  // Asset Card Component
-  const AssetCard = ({ holding }: { holding: Holding }) => {
-    const liveCoin = coins.find(c => c.id === holding.coinId);
-    const currentPrice = liveCoin?.currentPrice || holding.currentPrice;
-    const currentValue = holding.amount * currentPrice;
-    const priceChange = liveCoin?.priceChange24h || 0;
-    const isUp = priceChange >= 0;
-    const coinImage = liveCoin?.image || holding.image;
-
-    return (
-      <TouchableOpacity
-        style={styles.assetCard}
-        onPress={() => router.push(`/token/${holding.coinId}`)}
-        activeOpacity={0.7}
-      >
-        <CoinIcon uri={coinImage} symbol={holding.symbol} size={44} style={{ marginRight: 12 }} />
-        <View style={styles.assetInfo}>
-          <Text style={styles.assetName}>{holding.name || holding.coinId}</Text>
-          <Text style={styles.assetAmount}>
-            {holding.amount.toFixed(4)} {holding.symbol?.toUpperCase()}
-          </Text>
-        </View>
-        <View style={styles.assetRight}>
-          <Text style={styles.assetValue}>{formatCurrency(currentValue)}</Text>
-          <View style={styles.changeRow}>
-            <Ionicons
-              name={isUp ? 'arrow-up' : 'arrow-down'}
-              size={12}
-              color={isUp ? '#30D158' : Theme.colors.accent}
-            />
-            <Text style={[styles.changeText, { color: isUp ? '#30D158' : Theme.colors.accent }]}>
-              {isUp ? '+' : ''}{priceChange.toFixed(2)}%
-            </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  const renderTransaction = ({ item: tx }: { item: Transaction }) => (
-    <TouchableOpacity style={styles.txCard} activeOpacity={0.7}>
-      <View style={[styles.txIcon, { backgroundColor: `${getTransactionColor(tx.type)}20` }]}>
-        <Ionicons name={getTransactionIcon(tx.type)} size={24} color={getTransactionColor(tx.type)} />
-      </View>
-      <View style={styles.txInfo}>
-        <Text style={styles.txTitle}>{formatTransactionTitle(tx)}</Text>
-        <Text style={styles.txDate}>{formatTimeAgo(tx.createdAt)}</Text>
-      </View>
-      <View style={styles.txAmount}>
-        <Text style={styles.txValue}>${tx.totalUsdValue.toFixed(2)}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-
   // Calculate pull indicator rotation
   const spinValue = pullAnim.interpolate({
     inputRange: [0, PULL_THRESHOLD],
@@ -354,255 +400,8 @@ export default function HomeScreen() {
     extrapolate: 'clamp',
   });
 
-  const ListHeaderComponent = () => (
-    <>
-      {/* Web Pull-to-Refresh Indicator */}
-      {Platform.OS === 'web' && (pullDistance > 0 || refreshing) && (
-        <View style={styles.pullIndicator}>
-          {refreshing ? (
-            <ActivityIndicator size="small" color={Theme.colors.primary} />
-          ) : (
-            <Animated.View style={{ transform: [{ rotate: spinValue }] }}>
-              <Ionicons
-                name={pullDistance >= PULL_THRESHOLD ? 'checkmark-circle' : 'arrow-down'}
-                size={28}
-                color={pullDistance >= PULL_THRESHOLD ? Theme.colors.primary : Theme.colors.lightGrey}
-              />
-            </Animated.View>
-          )}
-        </View>
-      )}
-
-      {/* Balance Section */}
-      <View style={styles.balanceSection}>
-        <Text style={styles.balanceLabel}>Total Balance</Text>
-        <Animated.Text style={[styles.balanceAmount, { color: balanceTextColor }]}>
-          {formatCurrency(totalValue)}
-        </Animated.Text>
-        <View style={styles.pnlContainer}>
-          <Ionicons
-            name={isPositive ? 'arrow-up' : 'arrow-down'}
-            size={14}
-            color={isPositive ? '#30D158' : Theme.colors.accent}
-          />
-          <Text
-            style={[
-              styles.pnlText,
-              { color: isPositive ? '#30D158' : Theme.colors.accent },
-            ]}
-          >
-            {isPositive ? '+' : ''}{formatCurrency(totalPnL)} ({isPositive ? '+' : ''}{totalPnLPercent.toFixed(2)}%)
-          </Text>
-        </View>
-      </View>
-
-      {/* Action Buttons - BMO Style */}
-      <View style={styles.actionButtonsContainer}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => router.push('/(app)/send-options')}
-        >
-          <LinearGradient
-            colors={Theme.colors.primaryLinearGradient}
-            style={styles.actionButtonGradient}
-          >
-            <Ionicons name="arrow-up" size={28} color={Theme.colors.white} />
-          </LinearGradient>
-          <Text style={styles.actionButtonLabel}>Send</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => router.push('/(app)/receive-options')}
-        >
-          <LinearGradient
-            colors={Theme.colors.primaryLinearGradient}
-            style={styles.actionButtonGradient}
-          >
-            <Ionicons name="arrow-down" size={28} color={Theme.colors.white} />
-          </LinearGradient>
-          <Text style={styles.actionButtonLabel}>Receive</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => router.push('/(app)/swap')}
-        >
-          <LinearGradient
-            colors={Theme.colors.primaryLinearGradient}
-            style={styles.actionButtonGradient}
-          >
-            <Ionicons name="swap-horizontal" size={28} color={Theme.colors.white} />
-          </LinearGradient>
-          <Text style={styles.actionButtonLabel}>Swap</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => router.push('/deposit')}
-        >
-          <LinearGradient
-            colors={Theme.colors.primaryLinearGradient}
-            style={styles.actionButtonGradient}
-          >
-            <Ionicons name="add" size={28} color={Theme.colors.white} />
-          </LinearGradient>
-          <Text style={styles.actionButtonLabel}>Buy</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Assets Section */}
-      <TouchableOpacity
-        style={styles.sectionHeader}
-        onPress={() => setShowAssets(!showAssets)}
-      >
-        <Text style={styles.sectionTitle}>Assets</Text>
-        <Ionicons
-          name={showAssets ? 'chevron-up' : 'chevron-down'}
-          size={20}
-          color={Theme.colors.lightGrey}
-        />
-      </TouchableOpacity>
-
-      {showAssets && (
-        <View style={styles.assetsContainer}>
-          {/* Cash Balance */}
-          {cashBalance > 0 && (
-            <View style={styles.assetCard}>
-              <LinearGradient
-                colors={['#30D158', '#1B8B4A']}
-                style={[styles.assetIcon, styles.cashIcon]}
-              >
-                <Text style={styles.cashIconText}>$</Text>
-              </LinearGradient>
-              <View style={styles.assetInfo}>
-                <Text style={styles.assetName}>USDT</Text>
-                <Text style={styles.assetAmount}>Available to trade</Text>
-              </View>
-              <Text style={styles.assetValue}>{formatCurrency(cashBalance)}</Text>
-            </View>
-          )}
-
-          {/* Holdings */}
-          {holdings.map((holding) => (
-            <AssetCard key={holding.coinId} holding={holding} />
-          ))}
-
-          {/* Margin Positions */}
-          {marginPositions.map((pos) => {
-            const liveCoin = coins.find(c => c.id === pos.coinId);
-            const currentPrice = liveCoin?.currentPrice || pos.entryPrice;
-            const pnl = pos.type === 'LONG'
-              ? (currentPrice - pos.entryPrice) * pos.amount * pos.leverage
-              : (pos.entryPrice - currentPrice) * pos.amount * pos.leverage;
-            const pnlPercent = (pnl / pos.margin) * 100;
-            const isUp = pnl >= 0;
-
-            return (
-              <TouchableOpacity
-                key={pos.id}
-                style={styles.assetCard}
-                onPress={() => router.push(`/token/${pos.coinId}`)}
-                activeOpacity={0.7}
-              >
-                <CoinIcon uri={liveCoin?.image} symbol={pos.symbol} size={44} style={{ marginRight: 12 }} />
-                <View style={styles.assetInfo}>
-                  <Text style={styles.assetName}>{pos.name} {pos.leverage}x {pos.type}</Text>
-                  <Text style={styles.assetAmount}>
-                    Margin: ${pos.margin.toFixed(0)} · Entry: ${pos.entryPrice.toLocaleString()}
-                  </Text>
-                </View>
-                <View style={styles.assetRight}>
-                  <Text style={[styles.assetValue, { color: isUp ? '#30D158' : Theme.colors.accent }]}>
-                    {isUp ? '+' : ''}{formatCurrency(pnl)}
-                  </Text>
-                  <View style={styles.changeRow}>
-                    <Ionicons
-                      name={isUp ? 'arrow-up' : 'arrow-down'}
-                      size={12}
-                      color={isUp ? '#30D158' : Theme.colors.accent}
-                    />
-                    <Text style={[styles.changeText, { color: isUp ? '#30D158' : Theme.colors.accent }]}>
-                      {isUp ? '+' : ''}{pnlPercent.toFixed(2)}%
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-
-          {holdings.length === 0 && marginPositions.length === 0 && cashBalance === 0 && (
-            <View style={styles.emptyAssets}>
-              <Ionicons name="wallet-outline" size={32} color={Theme.colors.grey} />
-              <Text style={styles.emptyAssetsText}>No assets yet</Text>
-            </View>
-          )}
-        </View>
-      )}
-
-      {/* Top Coins Market Section */}
-      <TouchableOpacity
-        style={styles.sectionHeader}
-        onPress={() => setShowMarket(!showMarket)}
-      >
-        <Text style={styles.sectionTitle}>Top Coins</Text>
-        <TouchableOpacity onPress={() => router.push('/(app)/discover')}>
-          <Text style={styles.seeAllLink}>See all</Text>
-        </TouchableOpacity>
-      </TouchableOpacity>
-
-      {showMarket && coins.length > 0 && (
-        <View style={styles.assetsContainer}>
-          {coins.slice(0, 10).map((coin: Coin) => {
-            const isUp = coin.priceChange24h >= 0;
-            return (
-              <TouchableOpacity
-                key={coin.id}
-                style={styles.assetCard}
-                onPress={() => router.push(`/token/${coin.id}`)}
-                activeOpacity={0.7}
-              >
-                <CoinIcon uri={coin.image} symbol={coin.symbol} size={44} style={{ marginRight: 12 }} />
-                <View style={styles.assetInfo}>
-                  <Text style={styles.assetName}>{coin.name}</Text>
-                  <Text style={styles.assetAmount}>{coin.symbol.toUpperCase()}</Text>
-                </View>
-                <View style={styles.assetRight}>
-                  <Text style={styles.assetValue}>{formatCurrency(coin.currentPrice)}</Text>
-                  <View style={styles.changeRow}>
-                    <Ionicons
-                      name={isUp ? 'arrow-up' : 'arrow-down'}
-                      size={12}
-                      color={isUp ? '#30D158' : Theme.colors.accent}
-                    />
-                    <Text style={[styles.changeText, { color: isUp ? '#30D158' : Theme.colors.accent }]}>
-                      {isUp ? '+' : ''}{coin.priceChange24h.toFixed(2)}%
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      )}
-
-      {/* Transaction History Header */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Recent Activity</Text>
-        <TouchableOpacity onPress={() => router.push('/(app)/activity')}>
-          <Text style={styles.seeAllLink}>See all</Text>
-        </TouchableOpacity>
-      </View>
-    </>
-  );
-
-  const ListEmptyComponent = () => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="time-outline" size={48} color={Theme.colors.grey} />
-      <Text style={styles.emptyText}>No transactions yet</Text>
-      <Text style={styles.emptySubtext}>Your activity will appear here</Text>
-    </View>
-  );
+  // Get top 10 coins for market section
+  const topCoins = useMemo(() => coins.slice(0, 10), [coins]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -631,17 +430,250 @@ export default function HomeScreen() {
           ) : undefined
         }
       >
-        <ListHeaderComponent />
+        {/* Web Pull-to-Refresh Indicator */}
+        {Platform.OS === 'web' && (pullDistance > 0 || refreshing) && (
+          <View style={styles.pullIndicator}>
+            {refreshing ? (
+              <ActivityIndicator size="small" color={Theme.colors.primary} />
+            ) : (
+              <Animated.View style={{ transform: [{ rotate: spinValue }] }}>
+                <Ionicons
+                  name={pullDistance >= PULL_THRESHOLD ? 'checkmark-circle' : 'arrow-down'}
+                  size={28}
+                  color={pullDistance >= PULL_THRESHOLD ? Theme.colors.primary : Theme.colors.lightGrey}
+                />
+              </Animated.View>
+            )}
+          </View>
+        )}
+
+        {/* Balance Section */}
+        <View style={styles.balanceSection}>
+          <Text style={styles.balanceLabel}>Total Balance</Text>
+          <Animated.Text style={[styles.balanceAmount, { color: balanceTextColor }]}>
+            {formatCurrency(totalValue)}
+          </Animated.Text>
+          <View style={styles.pnlContainer}>
+            <Ionicons
+              name={isPositive ? 'arrow-up' : 'arrow-down'}
+              size={14}
+              color={isPositive ? '#30D158' : Theme.colors.accent}
+            />
+            <Text
+              style={[
+                styles.pnlText,
+                { color: isPositive ? '#30D158' : Theme.colors.accent },
+              ]}
+            >
+              {isPositive ? '+' : ''}{formatCurrency(totalPnL)} ({isPositive ? '+' : ''}{totalPnLPercent.toFixed(2)}%)
+            </Text>
+          </View>
+        </View>
+
+        {/* Action Buttons - BMO Style */}
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => router.push('/(app)/send-options')}
+          >
+            <LinearGradient
+              colors={Theme.colors.primaryLinearGradient}
+              style={styles.actionButtonGradient}
+            >
+              <Ionicons name="arrow-up" size={28} color={Theme.colors.white} />
+            </LinearGradient>
+            <Text style={styles.actionButtonLabel}>Send</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => router.push('/(app)/receive-options')}
+          >
+            <LinearGradient
+              colors={Theme.colors.primaryLinearGradient}
+              style={styles.actionButtonGradient}
+            >
+              <Ionicons name="arrow-down" size={28} color={Theme.colors.white} />
+            </LinearGradient>
+            <Text style={styles.actionButtonLabel}>Receive</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => router.push('/(app)/swap')}
+          >
+            <LinearGradient
+              colors={Theme.colors.primaryLinearGradient}
+              style={styles.actionButtonGradient}
+            >
+              <Ionicons name="swap-horizontal" size={28} color={Theme.colors.white} />
+            </LinearGradient>
+            <Text style={styles.actionButtonLabel}>Swap</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => router.push('/deposit')}
+          >
+            <LinearGradient
+              colors={Theme.colors.primaryLinearGradient}
+              style={styles.actionButtonGradient}
+            >
+              <Ionicons name="add" size={28} color={Theme.colors.white} />
+            </LinearGradient>
+            <Text style={styles.actionButtonLabel}>Buy</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Assets Section */}
+        <TouchableOpacity
+          style={styles.sectionHeader}
+          onPress={() => setShowAssets(!showAssets)}
+        >
+          <Text style={styles.sectionTitle}>Assets</Text>
+          <Ionicons
+            name={showAssets ? 'chevron-up' : 'chevron-down'}
+            size={20}
+            color={Theme.colors.lightGrey}
+          />
+        </TouchableOpacity>
+
+        {showAssets && (
+          <View style={styles.assetsContainer}>
+            {/* Cash Balance */}
+            {cashBalance > 0 && (
+              <View style={styles.assetCard}>
+                <LinearGradient
+                  colors={['#30D158', '#1B8B4A']}
+                  style={[styles.assetIcon, styles.cashIcon]}
+                >
+                  <Text style={styles.cashIconText}>$</Text>
+                </LinearGradient>
+                <View style={styles.assetInfo}>
+                  <Text style={styles.assetName}>USDT</Text>
+                  <Text style={styles.assetAmount}>Available to trade</Text>
+                </View>
+                <Text style={styles.assetValue}>{formatCurrency(cashBalance)}</Text>
+              </View>
+            )}
+
+            {/* Holdings - Using memoized AssetCard */}
+            {holdings.map((holding) => {
+              const liveCoin = coinMap.get(holding.coinId);
+              return (
+                <AssetCard
+                  key={holding.coinId}
+                  holding={holding}
+                  currentPrice={liveCoin?.currentPrice || holding.currentPrice}
+                  priceChange={liveCoin?.priceChange24h || 0}
+                  coinImage={liveCoin?.image || holding.image}
+                />
+              );
+            })}
+
+            {/* Margin Positions */}
+            {marginPositions.map((pos) => {
+              const liveCoin = coinMap.get(pos.coinId);
+              const currentPrice = liveCoin?.currentPrice || pos.entryPrice;
+              const pnl = pos.type === 'LONG'
+                ? (currentPrice - pos.entryPrice) * pos.amount * pos.leverage
+                : (pos.entryPrice - currentPrice) * pos.amount * pos.leverage;
+              const pnlPercent = (pnl / pos.margin) * 100;
+              const isUp = pnl >= 0;
+
+              return (
+                <TouchableOpacity
+                  key={pos.id}
+                  style={styles.assetCard}
+                  onPress={() => router.push(`/token/${pos.coinId}`)}
+                  activeOpacity={0.7}
+                >
+                  <CoinIcon uri={liveCoin?.image} symbol={pos.symbol} size={44} style={coinIconStyle} />
+                  <View style={styles.assetInfo}>
+                    <Text style={styles.assetName}>{pos.name} {pos.leverage}x {pos.type}</Text>
+                    <Text style={styles.assetAmount}>
+                      Margin: ${pos.margin.toFixed(0)} · Entry: ${pos.entryPrice.toLocaleString()}
+                    </Text>
+                  </View>
+                  <View style={styles.assetRight}>
+                    <Text style={[styles.assetValue, { color: isUp ? '#30D158' : Theme.colors.accent }]}>
+                      {isUp ? '+' : ''}{formatCurrency(pnl)}
+                    </Text>
+                    <View style={styles.changeRow}>
+                      <Ionicons
+                        name={isUp ? 'arrow-up' : 'arrow-down'}
+                        size={12}
+                        color={isUp ? '#30D158' : Theme.colors.accent}
+                      />
+                      <Text style={[styles.changeText, { color: isUp ? '#30D158' : Theme.colors.accent }]}>
+                        {isUp ? '+' : ''}{pnlPercent.toFixed(2)}%
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+
+            {holdings.length === 0 && marginPositions.length === 0 && cashBalance === 0 && (
+              <View style={styles.emptyAssets}>
+                <Ionicons name="wallet-outline" size={32} color={Theme.colors.grey} />
+                <Text style={styles.emptyAssetsText}>No assets yet</Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Top Coins Market Section */}
+        <TouchableOpacity
+          style={styles.sectionHeader}
+          onPress={() => setShowMarket(!showMarket)}
+        >
+          <Text style={styles.sectionTitle}>Top Coins</Text>
+          <TouchableOpacity onPress={() => router.push('/(app)/discover')}>
+            <Text style={styles.seeAllLink}>See all</Text>
+          </TouchableOpacity>
+        </TouchableOpacity>
+
+        {showMarket && topCoins.length > 0 && (
+          <View style={styles.assetsContainer}>
+            {topCoins.map((coin) => (
+              <MarketCoinCard key={coin.id} coin={coin} />
+            ))}
+          </View>
+        )}
+
+        {/* Transaction History Header */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Recent Activity</Text>
+          <TouchableOpacity onPress={() => router.push('/(app)/activity')}>
+            <Text style={styles.seeAllLink}>See all</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Transactions */}
         {transactions.slice(0, 5).length > 0 ? (
           transactions.slice(0, 5).map((tx) => (
-            <View key={tx.id}>
-              {renderTransaction({ item: tx })}
-            </View>
+            <TouchableOpacity key={tx.id} style={styles.txCard} activeOpacity={0.7}>
+              <View style={[styles.txIcon, { backgroundColor: `${getTransactionColor(tx.type)}20` }]}>
+                <Ionicons name={getTransactionIcon(tx.type)} size={24} color={getTransactionColor(tx.type)} />
+              </View>
+              <View style={styles.txInfo}>
+                <Text style={styles.txTitle}>{formatTransactionTitle(tx)}</Text>
+                <Text style={styles.txDate}>{formatTimeAgo(tx.createdAt)}</Text>
+              </View>
+              <View style={styles.txAmount}>
+                <Text style={styles.txValue}>${tx.totalUsdValue.toFixed(2)}</Text>
+              </View>
+            </TouchableOpacity>
           ))
         ) : (
-          !isLoadingTx && <ListEmptyComponent />
+          !isLoadingTx && (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="time-outline" size={48} color={Theme.colors.grey} />
+              <Text style={styles.emptyText}>No transactions yet</Text>
+              <Text style={styles.emptySubtext}>Your activity will appear here</Text>
+            </View>
+          )
         )}
       </ScrollView>
     </SafeAreaView>
@@ -861,11 +893,6 @@ const styles = StyleSheet.create({
     fontSize: Theme.fonts.sizes.normal,
     color: Theme.colors.lightGrey,
     marginTop: Theme.spacing.small,
-  },
-
-  // Refresh spinner - positioned above Total Balance
-  refreshSpinner: {
-    marginBottom: Theme.spacing.small,
   },
 
   // Web Pull-to-Refresh Indicator
