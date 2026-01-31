@@ -1,17 +1,18 @@
 // BMO Wallet Style Home Screen
 // Balance + Action Buttons + Transaction List + Assets Section
 
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
   RefreshControl,
   Platform,
   Image,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -225,8 +226,26 @@ export default function HomeScreen() {
 
   const ListHeaderComponent = () => (
     <>
-      {/* Refresh Indicator - shows when pulling to refresh */}
-      {refreshing && (
+      {/* Web Refresh Button - tap to refresh on web */}
+      {Platform.OS === 'web' && (
+        <TouchableOpacity
+          style={styles.webRefreshButton}
+          onPress={onRefresh}
+          activeOpacity={0.7}
+        >
+          {refreshing ? (
+            <ActivityIndicator size="small" color={Theme.colors.primary} />
+          ) : (
+            <>
+              <Ionicons name="refresh" size={16} color={Theme.colors.lightGrey} />
+              <Text style={styles.webRefreshText}>Tap to refresh</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      )}
+
+      {/* Refresh Indicator - shows when pulling to refresh (native) */}
+      {refreshing && Platform.OS !== 'web' && (
         <View style={styles.refreshIndicator}>
           <ActivityIndicator size="small" color={Theme.colors.primary} />
         </View>
@@ -713,6 +732,23 @@ const styles = StyleSheet.create({
     paddingTop: Theme.spacing.large,
   },
   refreshText: {
+    color: Theme.colors.lightGrey,
+    marginLeft: Theme.spacing.small,
+    fontSize: Theme.fonts.sizes.normal,
+  },
+
+  // Web Refresh Button
+  webRefreshButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Theme.spacing.medium,
+    backgroundColor: `${Theme.colors.lightDark}80`,
+    borderRadius: Theme.borderRadius.large,
+    marginBottom: Theme.spacing.small,
+    minHeight: 44,
+  },
+  webRefreshText: {
     color: Theme.colors.lightGrey,
     marginLeft: Theme.spacing.small,
     fontSize: Theme.fonts.sizes.normal,
