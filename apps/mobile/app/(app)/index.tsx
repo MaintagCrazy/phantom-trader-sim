@@ -71,18 +71,21 @@ export default function HomeScreen() {
 
   // Balance flash effect when value changes
   useEffect(() => {
-    if (prevTotalValue.current !== null && totalValue !== prevTotalValue.current) {
+    if (prevTotalValue.current !== null && Math.abs(totalValue - prevTotalValue.current) > 0.01) {
       const direction = totalValue > prevTotalValue.current ? 'up' : 'down';
       setBalanceFlash(direction);
 
       // Reset after animation
       const timer = setTimeout(() => {
         setBalanceFlash(null);
-      }, 600);
+      }, 800);
 
+      prevTotalValue.current = totalValue;
       return () => clearTimeout(timer);
     }
-    prevTotalValue.current = totalValue;
+    if (prevTotalValue.current === null) {
+      prevTotalValue.current = totalValue;
+    }
   }, [totalValue]);
 
   // Fetch transactions and margin positions
@@ -155,43 +158,58 @@ export default function HomeScreen() {
 
   // Web pull-to-refresh handlers
   const handleTouchStart = useCallback((e: any) => {
-    if (Platform.OS !== 'web') return;
-    if (isAtTop.current && !refreshing) {
-      startY.current = e.nativeEvent?.pageY || e.touches?.[0]?.pageY || 0;
+    if (Platform.OS !== 'web' || refreshing) return;
+
+    const touch = e.nativeEvent?.touches?.[0] || e.touches?.[0];
+    if (touch) {
+      startY.current = touch.pageY || touch.clientY || 0;
       isPulling.current = true;
     }
   }, [refreshing]);
 
   const handleTouchMove = useCallback((e: any) => {
     if (Platform.OS !== 'web' || !isPulling.current || refreshing) return;
-    const currentY = e.nativeEvent?.pageY || e.touches?.[0]?.pageY || 0;
+
+    const touch = e.nativeEvent?.touches?.[0] || e.touches?.[0];
+    if (!touch) return;
+
+    const currentY = touch.pageY || touch.clientY || 0;
     const diff = currentY - startY.current;
 
+    // Only allow pull when at top of scroll
     if (diff > 0 && isAtTop.current) {
-      const distance = Math.min(diff * 0.5, PULL_THRESHOLD * 1.5);
+      // Prevent default to stop scroll bounce
+      if (e.preventDefault) e.preventDefault();
+
+      const distance = Math.min(diff * 0.4, PULL_THRESHOLD * 1.5);
       setPullDistance(distance);
       pullAnim.setValue(distance);
     }
   }, [refreshing]);
 
   const handleTouchEnd = useCallback(() => {
-    if (Platform.OS !== 'web' || !isPulling.current) return;
-    isPulling.current = false;
+    if (Platform.OS !== 'web') return;
 
-    if (pullDistance >= PULL_THRESHOLD && !refreshing) {
+    if (isPulling.current && pullDistance >= PULL_THRESHOLD && !refreshing) {
+      // Trigger refresh
       onRefresh();
-    } else {
+    } else if (pullDistance > 0) {
+      // Snap back
       setPullDistance(0);
       Animated.spring(pullAnim, {
         toValue: 0,
         useNativeDriver: true,
+        tension: 100,
+        friction: 10,
       }).start();
     }
+
+    isPulling.current = false;
   }, [pullDistance, refreshing, onRefresh]);
 
   const handleScroll = useCallback((e: any) => {
-    const offsetY = e.nativeEvent.contentOffset.y;
-    isAtTop.current = offsetY <= 0;
+    const offsetY = e.nativeEvent?.contentOffset?.y || 0;
+    isAtTop.current = offsetY <= 5; // Small threshold for better detection
   }, []);
 
   const formatCurrency = (value: number) => {
@@ -316,48 +334,32 @@ export default function HomeScreen() {
     extrapolate: 'clamp',
   });
 
-  // Get balance color based on flash state
-  const getBalanceColor = () => {
-    if (balanceFlash === 'up') return '#30D158';
-    if (balanceFlash === 'down') return Theme.colors.accent;
-    return Theme.colors.white;
-  };
+  // Calculate balance text color
+  const balanceColor = balanceFlash === 'up' ? '#30D158' : balanceFlash === 'down' ? '#FF453A' : Theme.colors.white;
 
   const ListHeaderComponent = () => (
     <>
-      {/* Web Pull-to-Refresh Indicator - only arrow while pulling */}
-      {Platform.OS === 'web' && pullDistance > 0 && !refreshing && (
-        <Animated.View
-          style={[
-            styles.pullIndicator,
-            {
-              opacity: pullDistance / PULL_THRESHOLD,
-            },
-          ]}
-        >
-          <Animated.View style={{ transform: [{ rotate: spinValue }] }}>
-            <Ionicons
-              name="arrow-down"
-              size={24}
-              color={pullDistance >= PULL_THRESHOLD ? Theme.colors.primary : Theme.colors.lightGrey}
-            />
-          </Animated.View>
-          {pullDistance >= PULL_THRESHOLD && (
-            <Text style={styles.pullIndicatorText}>Release</Text>
+      {/* Web Pull-to-Refresh Indicator */}
+      {Platform.OS === 'web' && (pullDistance > 0 || refreshing) && (
+        <View style={styles.pullIndicator}>
+          {refreshing ? (
+            <ActivityIndicator size="small" color={Theme.colors.primary} />
+          ) : (
+            <Animated.View style={{ transform: [{ rotate: spinValue }] }}>
+              <Ionicons
+                name={pullDistance >= PULL_THRESHOLD ? 'checkmark-circle' : 'arrow-down'}
+                size={28}
+                color={pullDistance >= PULL_THRESHOLD ? Theme.colors.primary : Theme.colors.lightGrey}
+              />
+            </Animated.View>
           )}
-        </Animated.View>
+        </View>
       )}
 
       {/* Balance Section */}
       <View style={styles.balanceSection}>
-        {/* Refresh spinner - above Total Balance */}
-        {refreshing && (
-          <View style={styles.refreshSpinner}>
-            <ActivityIndicator size="small" color={Theme.colors.primary} />
-          </View>
-        )}
         <Text style={styles.balanceLabel}>Total Balance</Text>
-        <Text style={[styles.balanceAmount, { color: getBalanceColor() }]}>
+        <Text style={[styles.balanceAmount, { color: balanceColor }]}>
           {formatCurrency(totalValue)}
         </Text>
         <View style={styles.pnlContainer}>
@@ -851,14 +853,9 @@ const styles = StyleSheet.create({
 
   // Web Pull-to-Refresh Indicator
   pullIndicator: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: Theme.spacing.small,
-  },
-  pullIndicatorText: {
-    color: Theme.colors.lightGrey,
-    marginLeft: Theme.spacing.small,
-    fontSize: Theme.fonts.sizes.small,
+    paddingVertical: Theme.spacing.medium,
+    minHeight: 50,
   },
 });

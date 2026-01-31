@@ -1,4 +1,4 @@
-import React, { useState, useRef, memo } from 'react';
+import React, { useState, memo, useEffect } from 'react';
 import { Image, View, Text, StyleSheet, ImageStyle, ViewStyle, TextStyle } from 'react-native';
 import Theme from '@/styles/theme';
 
@@ -9,25 +9,27 @@ interface CoinIconProps {
   style?: ViewStyle;
 }
 
-// Cache loaded images to prevent re-loading on re-renders
-const loadedImages = new Set<string>();
+// Global cache for loaded images - persists across re-renders
+const imageCache = new Map<string, boolean>();
 
 /**
  * CoinIcon component that displays a cryptocurrency icon with fallback.
- * When the image fails to load (CORS, network, etc.), it shows a placeholder
- * with the first letter of the symbol.
- * Memoized to prevent unnecessary re-renders when prices update.
+ * STATIC - does not re-render when parent updates.
+ * Images are cached and won't reload/jitter on price updates.
  */
 function CoinIconComponent({ uri, symbol, size = 44, style }: CoinIconProps) {
-  // Check if this image was already loaded
-  const alreadyLoaded = uri ? loadedImages.has(uri) : false;
-  const [hasError, setHasError] = useState(false);
-  const [isLoading, setIsLoading] = useState(!alreadyLoaded);
+  // Check cache first
+  const cacheKey = uri || symbol;
+  const wasCached = imageCache.get(cacheKey);
+
+  const [hasError, setHasError] = useState(wasCached === false);
+  const [isLoaded, setIsLoaded] = useState(wasCached === true);
 
   const containerStyle: ViewStyle = {
     width: size,
     height: size,
     borderRadius: size / 2,
+    overflow: 'hidden',
     ...style,
   };
 
@@ -38,10 +40,15 @@ function CoinIconComponent({ uri, symbol, size = 44, style }: CoinIconProps) {
   };
 
   const placeholderStyle: ViewStyle = {
-    ...containerStyle,
+    width: size,
+    height: size,
+    borderRadius: size / 2,
     backgroundColor: Theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'absolute',
+    top: 0,
+    left: 0,
   };
 
   const textStyle: TextStyle = {
@@ -50,12 +57,10 @@ function CoinIconComponent({ uri, symbol, size = 44, style }: CoinIconProps) {
     fontWeight: '700',
   };
 
-  // Show placeholder if no URI, error occurred, or still loading (show both)
-  const showPlaceholder = !uri || hasError;
-
-  if (showPlaceholder) {
+  // No URI or known error - show placeholder only
+  if (!uri || hasError) {
     return (
-      <View style={placeholderStyle}>
+      <View style={[containerStyle, { backgroundColor: Theme.colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
         <Text style={textStyle}>
           {symbol?.charAt(0).toUpperCase() || '?'}
         </Text>
@@ -65,36 +70,36 @@ function CoinIconComponent({ uri, symbol, size = 44, style }: CoinIconProps) {
 
   return (
     <View style={containerStyle}>
-      {/* Show placeholder while loading */}
-      {isLoading && (
-        <View style={[placeholderStyle, StyleSheet.absoluteFill]}>
+      {/* Placeholder shown until image loads */}
+      {!isLoaded && (
+        <View style={placeholderStyle}>
           <Text style={textStyle}>
             {symbol?.charAt(0).toUpperCase() || '?'}
           </Text>
         </View>
       )}
       <Image
-        source={{ uri }}
-        style={imageStyle}
+        source={{ uri, cache: 'force-cache' }}
+        style={[imageStyle, !isLoaded && { opacity: 0 }]}
         onError={() => {
-          console.log(`[CoinIcon] Failed to load image for ${symbol}: ${uri}`);
+          imageCache.set(cacheKey, false);
           setHasError(true);
         }}
         onLoad={() => {
-          if (uri) loadedImages.add(uri);
-          setIsLoading(false);
+          imageCache.set(cacheKey, true);
+          setIsLoaded(true);
         }}
         resizeMode="cover"
+        fadeDuration={0}
       />
     </View>
   );
 }
 
-// Memoize to prevent re-renders when parent updates (price changes)
-export default memo(CoinIconComponent, (prevProps, nextProps) => {
-  return (
-    prevProps.uri === nextProps.uri &&
-    prevProps.symbol === nextProps.symbol &&
-    prevProps.size === nextProps.size
-  );
+// Strict memoization - NEVER re-render unless symbol changes
+const CoinIcon = memo(CoinIconComponent, (prev, next) => {
+  // Return true to prevent re-render (props are equal)
+  return prev.symbol === next.symbol && prev.size === next.size;
 });
+
+export default CoinIcon;
