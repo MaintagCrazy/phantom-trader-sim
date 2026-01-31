@@ -96,10 +96,11 @@ function CoinIconComponent({ uri, symbol, size = 44, style }: CoinIconProps) {
   );
 }
 
-// Strict memoization - NEVER re-render unless symbol changes
+// Strict memoization - NEVER re-render unless key props change
 const CoinIcon = memo(CoinIconComponent, (prev, next) => {
   // Return true to prevent re-render (props are equal)
-  return prev.symbol === next.symbol && prev.size === next.size;
+  // Include uri to prevent re-renders when parent coins array updates
+  return prev.symbol === next.symbol && prev.size === next.size && prev.uri === next.uri;
 });
 
 export default CoinIcon;
