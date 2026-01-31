@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, memo } from 'react';
 import { Image, View, Text, StyleSheet, ImageStyle, ViewStyle, TextStyle } from 'react-native';
 import Theme from '@/styles/theme';
 
@@ -9,14 +9,20 @@ interface CoinIconProps {
   style?: ViewStyle;
 }
 
+// Cache loaded images to prevent re-loading on re-renders
+const loadedImages = new Set<string>();
+
 /**
  * CoinIcon component that displays a cryptocurrency icon with fallback.
  * When the image fails to load (CORS, network, etc.), it shows a placeholder
  * with the first letter of the symbol.
+ * Memoized to prevent unnecessary re-renders when prices update.
  */
-export default function CoinIcon({ uri, symbol, size = 44, style }: CoinIconProps) {
+function CoinIconComponent({ uri, symbol, size = 44, style }: CoinIconProps) {
+  // Check if this image was already loaded
+  const alreadyLoaded = uri ? loadedImages.has(uri) : false;
   const [hasError, setHasError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!alreadyLoaded);
 
   const containerStyle: ViewStyle = {
     width: size,
@@ -75,6 +81,7 @@ export default function CoinIcon({ uri, symbol, size = 44, style }: CoinIconProp
           setHasError(true);
         }}
         onLoad={() => {
+          if (uri) loadedImages.add(uri);
           setIsLoading(false);
         }}
         resizeMode="cover"
@@ -82,3 +89,12 @@ export default function CoinIcon({ uri, symbol, size = 44, style }: CoinIconProp
     </View>
   );
 }
+
+// Memoize to prevent re-renders when parent updates (price changes)
+export default memo(CoinIconComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.uri === nextProps.uri &&
+    prevProps.symbol === nextProps.symbol &&
+    prevProps.size === nextProps.size
+  );
+});

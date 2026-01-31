@@ -51,6 +51,11 @@ export default function HomeScreen() {
   const startY = useRef(0);
   const isPulling = useRef(false);
 
+  // Balance flash animation
+  const [balanceFlash, setBalanceFlash] = useState<'up' | 'down' | null>(null);
+  const prevTotalValue = useRef<number | null>(null);
+  const balanceColorAnim = useRef(new Animated.Value(0)).current;
+
   const { userId } = useUserStore();
   const { portfolio, fetchPortfolio } = usePortfolioStore();
   const { coins, fetchCoins } = useCoinsStore();
@@ -63,6 +68,22 @@ export default function HomeScreen() {
   const cashBalance = portfolio?.cashBalance || 0;
   const holdings = portfolio?.holdings || [];
   const isPositive = totalPnL >= 0;
+
+  // Balance flash effect when value changes
+  useEffect(() => {
+    if (prevTotalValue.current !== null && totalValue !== prevTotalValue.current) {
+      const direction = totalValue > prevTotalValue.current ? 'up' : 'down';
+      setBalanceFlash(direction);
+
+      // Reset after animation
+      const timer = setTimeout(() => {
+        setBalanceFlash(null);
+      }, 600);
+
+      return () => clearTimeout(timer);
+    }
+    prevTotalValue.current = totalValue;
+  }, [totalValue]);
 
   // Fetch transactions and margin positions
   const fetchUserTransactions = useCallback(async () => {
@@ -107,26 +128,29 @@ export default function HomeScreen() {
     return () => clearInterval(interval);
   }, [userId]);
 
-  // Pull to refresh
+  // Pull to refresh - fast, non-blocking
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    try {
-      if (userId) {
-        await fetchAccounts(userId);
-        await fetchPortfolio(userId);
-        await fetchUserTransactions();
-      }
-      await fetchCoins(1, 50);
-    } finally {
-      setTimeout(() => {
-        setRefreshing(false);
-        setPullDistance(0);
-        Animated.spring(pullAnim, {
-          toValue: 0,
-          useNativeDriver: true,
-        }).start();
-      }, 500);
+
+    // Fire all requests in parallel, don't wait
+    if (userId) {
+      fetchAccounts(userId);
+      fetchPortfolio(userId);
+      fetchUserTransactions();
     }
+    fetchCoins(1, 50);
+
+    // Quick visual feedback - 800ms
+    setTimeout(() => {
+      setRefreshing(false);
+      setPullDistance(0);
+      Animated.spring(pullAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 100,
+        friction: 10,
+      }).start();
+    }, 800);
   }, [userId]);
 
   // Web pull-to-refresh handlers
@@ -292,47 +316,50 @@ export default function HomeScreen() {
     extrapolate: 'clamp',
   });
 
+  // Get balance color based on flash state
+  const getBalanceColor = () => {
+    if (balanceFlash === 'up') return '#30D158';
+    if (balanceFlash === 'down') return Theme.colors.accent;
+    return Theme.colors.white;
+  };
+
   const ListHeaderComponent = () => (
     <>
-      {/* Web Pull-to-Refresh Indicator */}
-      {Platform.OS === 'web' && (pullDistance > 0 || refreshing) && (
+      {/* Web Pull-to-Refresh Indicator - only arrow while pulling */}
+      {Platform.OS === 'web' && pullDistance > 0 && !refreshing && (
         <Animated.View
           style={[
             styles.pullIndicator,
             {
-              opacity: refreshing ? 1 : pullDistance / PULL_THRESHOLD,
-              transform: [{ translateY: pullAnim }],
+              opacity: pullDistance / PULL_THRESHOLD,
             },
           ]}
         >
-          {refreshing ? (
-            <ActivityIndicator size="small" color={Theme.colors.primary} />
-          ) : (
-            <Animated.View style={{ transform: [{ rotate: spinValue }] }}>
-              <Ionicons
-                name="arrow-down"
-                size={24}
-                color={pullDistance >= PULL_THRESHOLD ? Theme.colors.primary : Theme.colors.lightGrey}
-              />
-            </Animated.View>
+          <Animated.View style={{ transform: [{ rotate: spinValue }] }}>
+            <Ionicons
+              name="arrow-down"
+              size={24}
+              color={pullDistance >= PULL_THRESHOLD ? Theme.colors.primary : Theme.colors.lightGrey}
+            />
+          </Animated.View>
+          {pullDistance >= PULL_THRESHOLD && (
+            <Text style={styles.pullIndicatorText}>Release</Text>
           )}
-          <Text style={styles.pullIndicatorText}>
-            {refreshing ? 'Refreshing...' : pullDistance >= PULL_THRESHOLD ? 'Release to refresh' : 'Pull down to refresh'}
-          </Text>
         </Animated.View>
-      )}
-
-      {/* Refresh Indicator - shows when pulling to refresh (native) */}
-      {refreshing && Platform.OS !== 'web' && (
-        <View style={styles.refreshIndicator}>
-          <ActivityIndicator size="small" color={Theme.colors.primary} />
-        </View>
       )}
 
       {/* Balance Section */}
       <View style={styles.balanceSection}>
+        {/* Refresh spinner - above Total Balance */}
+        {refreshing && (
+          <View style={styles.refreshSpinner}>
+            <ActivityIndicator size="small" color={Theme.colors.primary} />
+          </View>
+        )}
         <Text style={styles.balanceLabel}>Total Balance</Text>
-        <Text style={styles.balanceAmount}>{formatCurrency(totalValue)}</Text>
+        <Text style={[styles.balanceAmount, { color: getBalanceColor() }]}>
+          {formatCurrency(totalValue)}
+        </Text>
         <View style={styles.pnlContainer}>
           <Ionicons
             name={isPositive ? 'arrow-up' : 'arrow-down'}
@@ -817,18 +844,9 @@ const styles = StyleSheet.create({
     marginTop: Theme.spacing.small,
   },
 
-  // Pull-to-Refresh Indicator
-  refreshIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Theme.spacing.medium,
-    paddingTop: Theme.spacing.large,
-  },
-  refreshText: {
-    color: Theme.colors.lightGrey,
-    marginLeft: Theme.spacing.small,
-    fontSize: Theme.fonts.sizes.normal,
+  // Refresh spinner - positioned above Total Balance
+  refreshSpinner: {
+    marginBottom: Theme.spacing.small,
   },
 
   // Web Pull-to-Refresh Indicator
@@ -836,12 +854,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: Theme.spacing.medium,
-    marginBottom: Theme.spacing.small,
+    paddingVertical: Theme.spacing.small,
   },
   pullIndicatorText: {
     color: Theme.colors.lightGrey,
     marginLeft: Theme.spacing.small,
-    fontSize: Theme.fonts.sizes.normal,
+    fontSize: Theme.fonts.sizes.small,
   },
 });
