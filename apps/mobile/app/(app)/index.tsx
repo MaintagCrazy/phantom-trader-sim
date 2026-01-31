@@ -1,17 +1,20 @@
 // BMO Wallet Style Home Screen
 // Balance + Action Buttons + Transaction List + Assets Section
 
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
+  ScrollView,
   TouchableOpacity,
   RefreshControl,
   Platform,
   Image,
   ActivityIndicator,
+  Animated,
+  PanResponder,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,6 +32,9 @@ import { getTransactions, getMarginPositions, Transaction, Holding, MarginPositi
 // Price update intervals
 const API_REFRESH_INTERVAL = 30000;
 
+// Pull-to-refresh threshold
+const PULL_THRESHOLD = 80;
+
 export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -36,6 +42,14 @@ export default function HomeScreen() {
   const [isLoadingTx, setIsLoadingTx] = useState(false);
   const [showAssets, setShowAssets] = useState(true);
   const [showMarket, setShowMarket] = useState(true);
+
+  // Pull-to-refresh state for web
+  const [pullDistance, setPullDistance] = useState(0);
+  const pullAnim = useRef(new Animated.Value(0)).current;
+  const scrollRef = useRef<ScrollView>(null);
+  const isAtTop = useRef(true);
+  const startY = useRef(0);
+  const isPulling = useRef(false);
 
   const { userId } = useUserStore();
   const { portfolio, fetchPortfolio } = usePortfolioStore();
@@ -104,9 +118,57 @@ export default function HomeScreen() {
       }
       await fetchCoins(1, 50);
     } finally {
-      setTimeout(() => setRefreshing(false), 500);
+      setTimeout(() => {
+        setRefreshing(false);
+        setPullDistance(0);
+        Animated.spring(pullAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      }, 500);
     }
   }, [userId]);
+
+  // Web pull-to-refresh handlers
+  const handleTouchStart = useCallback((e: any) => {
+    if (Platform.OS !== 'web') return;
+    if (isAtTop.current && !refreshing) {
+      startY.current = e.nativeEvent?.pageY || e.touches?.[0]?.pageY || 0;
+      isPulling.current = true;
+    }
+  }, [refreshing]);
+
+  const handleTouchMove = useCallback((e: any) => {
+    if (Platform.OS !== 'web' || !isPulling.current || refreshing) return;
+    const currentY = e.nativeEvent?.pageY || e.touches?.[0]?.pageY || 0;
+    const diff = currentY - startY.current;
+
+    if (diff > 0 && isAtTop.current) {
+      const distance = Math.min(diff * 0.5, PULL_THRESHOLD * 1.5);
+      setPullDistance(distance);
+      pullAnim.setValue(distance);
+    }
+  }, [refreshing]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (Platform.OS !== 'web' || !isPulling.current) return;
+    isPulling.current = false;
+
+    if (pullDistance >= PULL_THRESHOLD && !refreshing) {
+      onRefresh();
+    } else {
+      setPullDistance(0);
+      Animated.spring(pullAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [pullDistance, refreshing, onRefresh]);
+
+  const handleScroll = useCallback((e: any) => {
+    const offsetY = e.nativeEvent.contentOffset.y;
+    isAtTop.current = offsetY <= 0;
+  }, []);
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('en-US', {
@@ -223,24 +285,41 @@ export default function HomeScreen() {
     </TouchableOpacity>
   );
 
+  // Calculate pull indicator rotation
+  const spinValue = pullAnim.interpolate({
+    inputRange: [0, PULL_THRESHOLD],
+    outputRange: ['0deg', '360deg'],
+    extrapolate: 'clamp',
+  });
+
   const ListHeaderComponent = () => (
     <>
-      {/* Web Refresh Button - tap to refresh on web */}
-      {Platform.OS === 'web' && (
-        <TouchableOpacity
-          style={styles.webRefreshButton}
-          onPress={onRefresh}
-          activeOpacity={0.7}
+      {/* Web Pull-to-Refresh Indicator */}
+      {Platform.OS === 'web' && (pullDistance > 0 || refreshing) && (
+        <Animated.View
+          style={[
+            styles.pullIndicator,
+            {
+              opacity: refreshing ? 1 : pullDistance / PULL_THRESHOLD,
+              transform: [{ translateY: pullAnim }],
+            },
+          ]}
         >
           {refreshing ? (
             <ActivityIndicator size="small" color={Theme.colors.primary} />
           ) : (
-            <>
-              <Ionicons name="refresh" size={16} color={Theme.colors.lightGrey} />
-              <Text style={styles.webRefreshText}>Tap to refresh</Text>
-            </>
+            <Animated.View style={{ transform: [{ rotate: spinValue }] }}>
+              <Ionicons
+                name="arrow-down"
+                size={24}
+                color={pullDistance >= PULL_THRESHOLD ? Theme.colors.primary : Theme.colors.lightGrey}
+              />
+            </Animated.View>
           )}
-        </TouchableOpacity>
+          <Text style={styles.pullIndicatorText}>
+            {refreshing ? 'Refreshing...' : pullDistance >= PULL_THRESHOLD ? 'Release to refresh' : 'Pull down to refresh'}
+          </Text>
+        </Animated.View>
       )}
 
       {/* Refresh Indicator - shows when pulling to refresh (native) */}
@@ -485,24 +564,40 @@ export default function HomeScreen() {
       <BMOHeader />
 
       {/* Main Content */}
-      <FlatList
-        data={transactions.slice(0, 5)}
-        keyExtractor={(item) => item.id}
-        renderItem={renderTransaction}
-        ListHeaderComponent={ListHeaderComponent}
-        ListEmptyComponent={isLoadingTx ? null : ListEmptyComponent}
+      <ScrollView
+        ref={scrollRef}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={handleScroll}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={Theme.colors.primary}
-            colors={[Theme.colors.primary]}
-            progressBackgroundColor="transparent"
-          />
+          Platform.OS !== 'web' ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={Theme.colors.primary}
+              colors={[Theme.colors.primary]}
+              progressBackgroundColor="transparent"
+            />
+          ) : undefined
         }
-      />
+      >
+        <ListHeaderComponent />
+
+        {/* Transactions */}
+        {transactions.slice(0, 5).length > 0 ? (
+          transactions.slice(0, 5).map((tx) => (
+            <View key={tx.id}>
+              {renderTransaction({ item: tx })}
+            </View>
+          ))
+        ) : (
+          !isLoadingTx && <ListEmptyComponent />
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -736,18 +831,15 @@ const styles = StyleSheet.create({
     fontSize: Theme.fonts.sizes.normal,
   },
 
-  // Web Refresh Button
-  webRefreshButton: {
+  // Web Pull-to-Refresh Indicator
+  pullIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Theme.spacing.medium,
-    backgroundColor: `${Theme.colors.lightDark}80`,
-    borderRadius: Theme.borderRadius.large,
     marginBottom: Theme.spacing.small,
-    minHeight: 44,
   },
-  webRefreshText: {
+  pullIndicatorText: {
     color: Theme.colors.lightGrey,
     marginLeft: Theme.spacing.small,
     fontSize: Theme.fonts.sizes.normal,
