@@ -171,7 +171,7 @@ export default function DiscoverScreen() {
   );
 
   return (
-    <LinearGradient colors={Theme.colors.primaryLinearGradient} style={styles.container}>
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
@@ -199,13 +199,14 @@ export default function DiscoverScreen() {
         }
         ListEmptyComponent={EmptyState}
       />
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#131314',
   },
   header: {
     flexDirection: 'row',

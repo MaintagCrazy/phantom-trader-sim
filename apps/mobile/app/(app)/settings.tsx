@@ -70,7 +70,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.safeAreaBackground}>
-      <LinearGradient colors={Theme.colors.primaryLinearGradient} style={styles.container}>
+      <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
@@ -160,7 +160,7 @@ export default function SettingsScreen() {
           <Text style={styles.debugText}>User ID: {userId?.slice(0, 8)}...</Text>
         </View>
       </ScrollView>
-      </LinearGradient>
+      </View>
     </View>
   );
 }
@@ -168,10 +168,11 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   safeAreaBackground: {
     flex: 1,
-    backgroundColor: '#6155AC', // Match gradient end color for bottom safe area
+    backgroundColor: '#131314', // Match main menu dark background
   },
   container: {
     flex: 1,
+    backgroundColor: '#131314',
   },
   header: {
     flexDirection: 'row',

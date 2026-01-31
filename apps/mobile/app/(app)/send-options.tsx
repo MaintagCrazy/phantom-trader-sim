@@ -82,7 +82,7 @@ export default function SendOptionsScreen() {
 
   return (
     <View style={styles.safeAreaBackground}>
-      <LinearGradient colors={Theme.colors.primaryLinearGradient} style={styles.container}>
+      <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
@@ -104,7 +104,7 @@ export default function SendOptionsScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={EmptyState}
         />
-      </LinearGradient>
+      </View>
     </View>
   );
 }
@@ -112,10 +112,11 @@ export default function SendOptionsScreen() {
 const styles = StyleSheet.create({
   safeAreaBackground: {
     flex: 1,
-    backgroundColor: '#6155AC',
+    backgroundColor: '#131314',
   },
   container: {
     flex: 1,
+    backgroundColor: '#131314',
   },
   header: {
     flexDirection: 'row',

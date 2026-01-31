@@ -56,39 +56,47 @@ export default function HomeScreen() {
   const prevTotalValue = useRef<number | null>(null);
   const flashAnim = useRef(new Animated.Value(0)).current;
 
+  // Stable total value - only updates on manual refresh, not automatic updates
+  const [stableTotalValue, setStableTotalValue] = useState<number | null>(null);
+  const isManualRefresh = useRef(false);
+
   const { userId } = useUserStore();
   const { portfolio, fetchPortfolio } = usePortfolioStore();
   const { coins, fetchCoins } = useCoinsStore();
   const { fetchAccounts, migrateToAccounts } = useAccountsStore();
 
-  // Calculate totals
-  const totalValue = portfolio?.totalValue || 0;
+  // Use stable value for main balance display - only updates on manual refresh
+  const totalValue = stableTotalValue ?? portfolio?.totalValue ?? 0;
   const totalPnL = portfolio?.totalPnL || 0;
   const totalPnLPercent = portfolio?.totalPnLPercent || 0;
   const cashBalance = portfolio?.cashBalance || 0;
   const holdings = portfolio?.holdings || [];
   const isPositive = totalPnL >= 0;
 
-  // Balance flash effect when value changes - animates color fade
+  // Set stable total value on initial load and manual refresh
   useEffect(() => {
-    if (prevTotalValue.current !== null && Math.abs(totalValue - prevTotalValue.current) > 0.01) {
-      const direction = totalValue > prevTotalValue.current ? 'up' : 'down';
-      setBalanceDirection(direction);
-
-      // Animate: flash to color (1) then fade back to white (0)
-      flashAnim.setValue(1);
-      Animated.timing(flashAnim, {
-        toValue: 0,
-        duration: 1000,
-        useNativeDriver: false, // Color animation needs native driver off
-      }).start();
-
-      prevTotalValue.current = totalValue;
+    const portfolioValue = portfolio?.totalValue ?? 0;
+    if (stableTotalValue === null && portfolioValue > 0) {
+      // Initial load - set stable value
+      setStableTotalValue(portfolioValue);
+      prevTotalValue.current = portfolioValue;
+    } else if (isManualRefresh.current && portfolioValue > 0) {
+      // Manual refresh - update stable value with flash animation
+      const direction = portfolioValue > (stableTotalValue || 0) ? 'up' : 'down';
+      if (Math.abs(portfolioValue - (stableTotalValue || 0)) > 0.01) {
+        setBalanceDirection(direction);
+        flashAnim.setValue(1);
+        Animated.timing(flashAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: false,
+        }).start();
+      }
+      setStableTotalValue(portfolioValue);
+      prevTotalValue.current = portfolioValue;
+      isManualRefresh.current = false;
     }
-    if (prevTotalValue.current === null) {
-      prevTotalValue.current = totalValue;
-    }
-  }, [totalValue]);
+  }, [portfolio?.totalValue]);
 
   // Interpolate the flash animation to colors
   const balanceTextColor = flashAnim.interpolate({
@@ -145,6 +153,7 @@ export default function HomeScreen() {
   // Pull to refresh - fast, non-blocking
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+    isManualRefresh.current = true; // Mark as manual refresh to update stable balance
 
     // Fire all requests in parallel, don't wait
     if (userId) {
