@@ -51,10 +51,10 @@ export default function HomeScreen() {
   const startY = useRef(0);
   const isPulling = useRef(false);
 
-  // Balance flash animation
-  const [balanceFlash, setBalanceFlash] = useState<'up' | 'down' | null>(null);
+  // Balance flash animation - fades from green/red back to white
+  const [balanceDirection, setBalanceDirection] = useState<'up' | 'down' | null>(null);
   const prevTotalValue = useRef<number | null>(null);
-  const balanceColorAnim = useRef(new Animated.Value(0)).current;
+  const flashAnim = useRef(new Animated.Value(0)).current;
 
   const { userId } = useUserStore();
   const { portfolio, fetchPortfolio } = usePortfolioStore();
@@ -69,24 +69,35 @@ export default function HomeScreen() {
   const holdings = portfolio?.holdings || [];
   const isPositive = totalPnL >= 0;
 
-  // Balance flash effect when value changes
+  // Balance flash effect when value changes - animates color fade
   useEffect(() => {
     if (prevTotalValue.current !== null && Math.abs(totalValue - prevTotalValue.current) > 0.01) {
       const direction = totalValue > prevTotalValue.current ? 'up' : 'down';
-      setBalanceFlash(direction);
+      setBalanceDirection(direction);
 
-      // Reset after animation
-      const timer = setTimeout(() => {
-        setBalanceFlash(null);
-      }, 800);
+      // Animate: flash to color (1) then fade back to white (0)
+      flashAnim.setValue(1);
+      Animated.timing(flashAnim, {
+        toValue: 0,
+        duration: 1000,
+        useNativeDriver: false, // Color animation needs native driver off
+      }).start();
 
       prevTotalValue.current = totalValue;
-      return () => clearTimeout(timer);
     }
     if (prevTotalValue.current === null) {
       prevTotalValue.current = totalValue;
     }
   }, [totalValue]);
+
+  // Interpolate the flash animation to colors
+  const balanceTextColor = flashAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [
+      '#FFFFFF', // White (default)
+      balanceDirection === 'up' ? '#30D158' : balanceDirection === 'down' ? '#FF453A' : '#FFFFFF'
+    ],
+  });
 
   // Fetch transactions and margin positions
   const fetchUserTransactions = useCallback(async () => {
@@ -334,9 +345,6 @@ export default function HomeScreen() {
     extrapolate: 'clamp',
   });
 
-  // Calculate balance text color
-  const balanceColor = balanceFlash === 'up' ? '#30D158' : balanceFlash === 'down' ? '#FF453A' : Theme.colors.white;
-
   const ListHeaderComponent = () => (
     <>
       {/* Web Pull-to-Refresh Indicator */}
@@ -359,9 +367,9 @@ export default function HomeScreen() {
       {/* Balance Section */}
       <View style={styles.balanceSection}>
         <Text style={styles.balanceLabel}>Total Balance</Text>
-        <Text style={[styles.balanceAmount, { color: balanceColor }]}>
+        <Animated.Text style={[styles.balanceAmount, { color: balanceTextColor }]}>
           {formatCurrency(totalValue)}
-        </Text>
+        </Animated.Text>
         <View style={styles.pnlContainer}>
           <Ionicons
             name={isPositive ? 'arrow-up' : 'arrow-down'}
