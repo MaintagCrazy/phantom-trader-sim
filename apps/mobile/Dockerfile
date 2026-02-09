@@ -48,19 +48,15 @@ RUN ls -la dist/ && \
 # Copy PWA assets to dist folder BUT NOT index.html (expo generates that)
 RUN find public -type f ! -name 'index.html' -exec cp {} dist/ \; 2>/dev/null || true
 
-# Production stage - serve static files
+# Production stage - minimal, zero dependencies
 FROM node:20-slim
 
 WORKDIR /app
 
-# Install express for serving static files
-RUN npm install express
-
-# Copy the built web files and server
+# Copy the built web files and server (no npm install needed - uses only Node builtins)
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server.js ./server.js
 
 EXPOSE 8081
 
-# Run express server
 CMD ["node", "server.js"]
