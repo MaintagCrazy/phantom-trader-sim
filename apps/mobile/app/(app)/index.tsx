@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: Theme.spacing.medium,
-    paddingBottom: Theme.spacing.huge,
+    paddingBottom: Theme.spacing.extraHuge,
   },
 
   // Balance Section
