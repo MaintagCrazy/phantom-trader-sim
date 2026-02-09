@@ -60,8 +60,7 @@ RUN npm install express
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server.js ./server.js
 
-# Expose port (Railway sets PORT env var)
-EXPOSE ${PORT:-8081}
+EXPOSE 8081
 
 # Run express server
 CMD ["node", "server.js"]
