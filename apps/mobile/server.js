@@ -2,8 +2,7 @@ const express = require('express');
 const path = require('path');
 
 const app = express();
-// Railway networking is configured for port 8081
-const PORT = 8081;
+const PORT = process.env.PORT || 8081;
 
 // Serve static files from dist
 app.use(express.static(path.join(__dirname, 'dist')));
