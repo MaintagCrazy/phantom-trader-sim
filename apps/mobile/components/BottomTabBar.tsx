@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Theme from '@/styles/theme';
 
 const tabs = [
@@ -21,12 +22,13 @@ const isTabScreen = (pathname: string) => {
 
 const BottomTabBar = memo(() => {
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
   const normalizedPath = pathname.replace('/(app)', '').replace(/\/$/, '') || '/';
 
   if (!isTabScreen(pathname)) return null;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
       <View style={styles.tabBar}>
         {tabs.map((tab) => {
           const isActive =
@@ -69,10 +71,6 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.dark,
     borderTopWidth: 0.5,
     borderTopColor: Theme.colors.lightDark,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 8,
-    ...(Platform.OS === 'web' ? {
-      paddingBottom: 8,
-    } : {}),
   },
   tabBar: {
     flexDirection: 'row',
