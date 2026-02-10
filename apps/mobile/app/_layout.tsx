@@ -43,9 +43,9 @@ const fixWebBackgrounds = () => {
     document.documentElement.style.backgroundColor = '#131314';
     document.body.style.backgroundColor = '#131314';
 
-    // Ensure full viewport height on mobile
-    document.documentElement.style.height = '100dvh';
-    document.body.style.height = '100dvh';
+    // Ensure full viewport height on mobile - use 100% not dvh to include safe areas
+    document.documentElement.style.height = '100%';
+    document.body.style.height = '100%';
     document.body.style.position = 'fixed';
     document.body.style.top = '0';
     document.body.style.left = '0';
@@ -253,23 +253,20 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   safeAreaFill: {
     flex: 1,
-    backgroundColor: '#131314', // Dark background - fills iOS safe areas
+    backgroundColor: '#131314',
     ...(Platform.OS === 'web' ? {
       position: 'fixed' as any,
       top: 0,
       left: 0,
       right: 0,
       bottom: 0,
-      height: '100dvh',
       width: '100%',
     } : {}),
   },
   container: {
     flex: 1,
-    // Ensure gradient fills entire viewport on mobile web
     ...(Platform.OS === 'web' ? {
       height: '100%',
-      minHeight: '100dvh',
     } : {}),
   },
   loadingOverlay: {

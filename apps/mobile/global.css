@@ -18,24 +18,17 @@
   height: 0 !important;
 }
 
-html {
+html, body {
   height: 100%;
   width: 100%;
-  margin: 0;
-  padding: 0;
+  margin: 0 !important;
+  padding: 0 !important;
   background-color: #131314;
   overflow: hidden;
   overscroll-behavior: none;
 }
 
 body {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  background-color: #131314;
-  overflow: hidden;
-  overscroll-behavior: none;
   -webkit-text-size-adjust: 100%;
   touch-action: pan-x pan-y;
 }
@@ -43,12 +36,12 @@ body {
 #root {
   height: 100%;
   width: 100%;
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: transparent;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* AGGRESSIVE: Override ALL Expo Router gray backgrounds */
@@ -65,19 +58,9 @@ body {
   background: transparent !important;
 }
 
-/* Remove any gaps */
-html, body, #root {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Ensure the app fills the entire viewport on iOS Safari */
+/* Ensure the app fills the entire viewport on iOS Safari including safe areas */
 @supports (-webkit-touch-callout: none) {
-  html, body {
-    height: -webkit-fill-available;
-  }
-
-  #root {
-    min-height: -webkit-fill-available;
+  html, body, #root {
+    height: 100% !important;
   }
 }

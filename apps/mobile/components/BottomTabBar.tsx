@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
@@ -14,7 +14,6 @@ const tabs = [
 
 // Screens where the tab bar should be visible
 const TAB_VISIBLE_PATHS = ['/', '/discover', '/activity'];
-// Screens where tab bar should be hidden (modals, detail screens)
 const isTabScreen = (pathname: string) => {
   const normalized = pathname.replace('/(app)', '').replace(/\/$/, '') || '/';
   return TAB_VISIBLE_PATHS.includes(normalized);
@@ -23,12 +22,25 @@ const isTabScreen = (pathname: string) => {
 const BottomTabBar = memo(() => {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
+  const containerRef = useRef<View>(null);
   const normalizedPath = pathname.replace('/(app)', '').replace(/\/$/, '') || '/';
+
+  // On web, apply CSS env(safe-area-inset-bottom) since useSafeAreaInsets returns 0
+  useEffect(() => {
+    if (Platform.OS === 'web' && containerRef.current) {
+      const el = containerRef.current as unknown as HTMLElement;
+      if (el && el.style) {
+        el.style.paddingBottom = 'max(8px, env(safe-area-inset-bottom, 8px))';
+      }
+    }
+  }, []);
 
   if (!isTabScreen(pathname)) return null;
 
+  const bottomPadding = Platform.OS === 'web' ? 8 : Math.max(insets.bottom, 8);
+
   return (
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+    <View ref={containerRef} style={[styles.container, { paddingBottom: bottomPadding }]}>
       <View style={styles.tabBar}>
         {tabs.map((tab) => {
           const isActive =
